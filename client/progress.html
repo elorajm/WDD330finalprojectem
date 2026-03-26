@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Progress — Fitness Goal Tracker</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <style>
+    /* ── Chart containers ── */
+    .chart-wrap {
+      position: relative;
+      width: 100%;
+    }
+    .chart-wrap-lg { height: 280px; }
+    .chart-wrap-sm { height: 240px; }
+
+    /* ── Workout type badges ── */
+    .type-badge {
+      display: inline-block;
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 0.15rem 0.55rem;
+      border-radius: 9999px;
+      text-transform: capitalize;
+    }
+    .type-strength   { background: #ede9fe; color: #6d28d9; }
+    .type-cardio     { background: #dbeafe; color: #1d4ed8; }
+    .type-flexibility{ background: #fce7f3; color: #9d174d; }
+    .type-sports     { background: #dcfce7; color: #15803d; }
+    .type-other      { background: #f1f5f9; color: #475569; }
+
+    /* ── History table ── */
+    .history-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+    }
+    .history-table th {
+      text-align: left;
+      padding: 0.5rem 0.75rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--gray-500);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      border-bottom: 2px solid var(--gray-100);
+    }
+    .history-table td {
+      padding: 0.65rem 0.75rem;
+      border-bottom: 1px solid var(--gray-100);
+      color: var(--gray-700);
+      vertical-align: middle;
+    }
+    .history-table tbody tr:last-child td { border-bottom: none; }
+    .history-table tbody tr:hover td { background: #f8fafc; }
+    .td-date     { color: var(--gray-500); font-size: 0.8rem; white-space: nowrap; }
+    .td-title    { font-weight: 600; color: var(--gray-800); }
+    .td-muted    { color: var(--gray-400); }
+
+    /* ── Weight-change colour helpers ── */
+    .weight-neg { color: #15803d; }
+    .weight-pos { color: #c2410c; }
+
+    /* ── Stat delta badge ── */
+    .stat-change {
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 0.1rem 0.4rem;
+      border-radius: 4px;
+      margin-top: 0.2rem;
+      display: inline-block;
+    }
+    .stat-change-neg { background: #dcfce7; color: #15803d; }
+    .stat-change-pos { background: #ffedd5; color: #c2410c; }
+    .stat-change-neu { background: #f1f5f9; color: var(--gray-500); }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation -->
+  <header>
+    <nav class="navbar" aria-label="Main navigation">
+      <div class="navbar-inner">
+        <a href="dashboard.html" class="navbar-brand">
+          <div class="brand-icon">💪</div>
+          FitTracker
+        </a>
+        <ul class="navbar-nav" role="list">
+          <li><a href="dashboard.html" class="nav-link">🏠 Dashboard</a></li>
+          <li><a href="workout.html"   class="nav-link">🏋️ Workout</a></li>
+          <li><a href="metrics.html"   class="nav-link">📏 Metrics</a></li>
+          <li><a href="progress.html"  class="nav-link">📈 Progress</a></li>
+          <li><a href="avatar.html"    class="nav-link">🧑 Avatar</a></li>
+        </ul>
+        <div class="nav-actions">
+          <div class="nav-avatar" id="nav-initial" aria-label="User profile">🧑</div>
+          <button id="logout-btn" class="btn btn-outline btn-sm">Log Out</button>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <main class="page-wrapper">
+
+    <!-- ── Page Header ───────────────────────────────────────── -->
+    <div class="page-header d-flex justify-between align-center" style="flex-wrap:wrap;gap:1rem;">
+      <div>
+        <h1 class="page-title">📈 Your Progress</h1>
+        <p class="page-subtitle">Visual overview of your fitness journey.</p>
+      </div>
+      <div style="display:flex;gap:0.75rem;align-items:center;">
+        <select class="form-control" id="time-range" style="width:auto;font-size:0.875rem;">
+          <option value="7">Last 7 days</option>
+          <option value="30" selected>Last 30 days</option>
+          <option value="90">Last 3 months</option>
+          <option value="all">All Time</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- ── Summary Stat Cards ────────────────────────────────── -->
+    <div class="grid-4" style="margin-bottom:1.5rem;">
+
+      <div class="stat-card">
+        <div class="stat-icon orange">🔥</div>
+        <div>
+          <div class="stat-value" id="stat-workouts">—</div>
+          <div class="stat-label">Total Workouts</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon green">⚖️</div>
+        <div>
+          <div class="stat-value" id="stat-weight">—</div>
+          <div class="stat-label">Weight Change</div>
+          <div id="stat-weight-badge" style="margin-top:0.25rem;"></div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon purple">⏱</div>
+        <div>
+          <div class="stat-value" id="stat-time">—</div>
+          <div class="stat-label">Active Time</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon blue">🔥</div>
+        <div>
+          <div class="stat-value" id="stat-streak">—</div>
+          <div class="stat-label">Current Streak</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ── Weight Over Time (full width) ─────────────────────── -->
+    <div class="card" style="margin-bottom:1.5rem;">
+      <div class="card-header">
+        <h2 class="card-title">⚖️ Weight Over Time</h2>
+        <span id="weight-unit-label" class="badge badge-gray" style="display:none;"></span>
+      </div>
+      <div id="weight-chart-area">
+        <div class="chart-wrap chart-wrap-lg">
+          <canvas id="weight-canvas" aria-label="Weight over time chart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Weekly Charts (side by side) ─────────────────────── -->
+    <div class="grid-2" style="margin-bottom:1.5rem;">
+
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">🏋️ Workouts per Week</h2>
+        </div>
+        <div id="workouts-chart-area">
+          <div class="chart-wrap chart-wrap-sm">
+            <canvas id="workouts-canvas" aria-label="Workouts per week chart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">⏱ Exercise Minutes / Week</h2>
+        </div>
+        <div id="minutes-chart-area">
+          <div class="chart-wrap chart-wrap-sm">
+            <canvas id="minutes-canvas" aria-label="Exercise minutes per week chart"></canvas>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ── Workout History Table ─────────────────────────────── -->
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">📋 Workout History</h2>
+        <input type="search" id="history-search" class="form-control"
+               placeholder="Search workouts…"
+               style="width:200px;font-size:0.875rem;" />
+      </div>
+      <div id="history-table-wrap">
+        <!-- populated by JS -->
+      </div>
+    </div>
+
+  </main>
+
+  <footer class="footer">Fitness Goal Tracker &copy; 2025 &mdash; WDD330</footer>
+
+  <!-- Chart.js 4 -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <script src="js/main.js"></script>
+  <script>
+    requireAuth();
+
+    // ── Chart instances (stored so we can destroy before redraw) ─
+    let chartWeight   = null;
+    let chartWorkouts = null;
+    let chartMinutes  = null;
+
+    // ── All workout rows for search filtering ──────────────────
+    let allHistoryRows = [];
+
+    // ── Chart.js global style defaults ────────────────────────
+    Chart.defaults.font.family = "'Inter', 'Segoe UI', system-ui, sans-serif";
+    Chart.defaults.font.size   = 11;
+    Chart.defaults.color       = '#64748b';
+
+    // ── Reusable axis styles ───────────────────────────────────
+    const gridColor = '#f1f5f9';
+    const tickOpts  = { font: { size: 11 }, maxTicksLimit: 8 };
+    const xAxis     = { grid: { display: false }, ticks: tickOpts };
+    const yAxisBase = { grid: { color: gridColor }, ticks: tickOpts, beginAtZero: true };
+
+    // ── Helper: build empty-state HTML ────────────────────────
+    function emptyState(icon, msg, linkHtml = '') {
+      return `
+        <div class="placeholder-box">
+          <div class="placeholder-icon">${icon}</div>
+          <p>${msg}${linkHtml ? '<br />' + linkHtml : ''}</p>
+        </div>`;
+    }
+
+    // ── Helper: format minutes → readable duration ─────────────
+    function fmtTime(mins) {
+      if (!mins) return '0 min';
+      if (mins < 60) return mins + ' min';
+      const h = Math.floor(mins / 60);
+      const m = mins % 60;
+      return m ? `${h}h ${m}m` : `${h} hr${h > 1 ? 's' : ''}`;
+    }
+
+    // ── Type badge HTML ────────────────────────────────────────
+    const TYPE_LABELS = {
+      strength:    '🏋️ Strength',
+      cardio:      '🏃 Cardio',
+      flexibility: '🧘 Flexibility',
+      sports:      '⚽ Sports',
+      other:       '•• Other',
+    };
+
+    function typeBadge(type) {
+      const label = TYPE_LABELS[type] || type;
+      return `<span class="type-badge type-${type}">${label}</span>`;
+    }
+
+    // ── Render Weight chart ────────────────────────────────────
+    function renderWeightChart(data) {
+      const area = document.getElementById('weight-chart-area');
+
+      if (!data.data.length) {
+        area.innerHTML = emptyState(
+          '📉',
+          'No weight measurements yet.',
+          `<a href="metrics.html" style="color:var(--primary);">Log your first measurement →</a>`
+        );
+        document.getElementById('weight-unit-label').style.display = 'none';
+        return;
+      }
+
+      // Restore canvas if it was replaced with empty state
+      area.innerHTML = `<div class="chart-wrap chart-wrap-lg">
+        <canvas id="weight-canvas" aria-label="Weight over time chart"></canvas>
+      </div>`;
+
+      const unitLabel = document.getElementById('weight-unit-label');
+      if (unitLabel) {
+        unitLabel.textContent = data.unit;
+        unitLabel.style.display = 'inline-block';
+      }
+
+      if (chartWeight) chartWeight.destroy();
+
+      chartWeight = new Chart(document.getElementById('weight-canvas'), {
+        type: 'line',
+        data: {
+          labels: data.labels,
+          datasets: [{
+            label:           'Weight (' + data.unit + ')',
+            data:            data.data,
+            borderColor:     'rgb(59, 130, 246)',
+            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+            tension:         0.35,
+            fill:            true,
+            pointRadius:     4,
+            pointHoverRadius: 6,
+            pointBackgroundColor: 'rgb(59, 130, 246)',
+          }],
+        },
+        options: {
+          responsive:          true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend:  { display: false },
+            tooltip: { mode: 'index', intersect: false },
+          },
+          scales: {
+            x: xAxis,
+            y: { ...yAxisBase, beginAtZero: false },
+          },
+        },
+      });
+    }
+
+    // ── Render Workouts/week bar chart ─────────────────────────
+    function renderWorkoutsChart(data) {
+      const area = document.getElementById('workouts-chart-area');
+      const allZero = data.data.every(v => v === 0);
+
+      if (allZero) {
+        area.innerHTML = emptyState(
+          '📊',
+          'No workouts logged for this period.',
+          `<a href="workout.html" style="color:var(--primary);">Log a workout →</a>`
+        );
+        return;
+      }
+
+      area.innerHTML = `<div class="chart-wrap chart-wrap-sm">
+        <canvas id="workouts-canvas" aria-label="Workouts per week chart"></canvas>
+      </div>`;
+
+      if (chartWorkouts) chartWorkouts.destroy();
+
+      chartWorkouts = new Chart(document.getElementById('workouts-canvas'), {
+        type: 'bar',
+        data: {
+          labels: data.labels,
+          datasets: [{
+            label:           'Workouts',
+            data:            data.data,
+            backgroundColor: 'rgba(99, 102, 241, 0.8)',
+            hoverBackgroundColor: 'rgba(99, 102, 241, 1)',
+            borderRadius:    6,
+            borderSkipped:   false,
+          }],
+        },
+        options: {
+          responsive:          true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend:  { display: false },
+            tooltip: { mode: 'index', intersect: false },
+          },
+          scales: {
+            x: xAxis,
+            y: { ...yAxisBase, ticks: { ...tickOpts, stepSize: 1 } },
+          },
+        },
+      });
+    }
+
+    // ── Render Minutes/week bar chart ──────────────────────────
+    function renderMinutesChart(data) {
+      const area = document.getElementById('minutes-chart-area');
+      const allZero = data.data.every(v => v === 0);
+
+      if (allZero) {
+        area.innerHTML = emptyState(
+          '⏱',
+          'No duration data logged yet.',
+          `<span class="text-sm text-muted">Add duration when logging workouts.</span>`
+        );
+        return;
+      }
+
+      area.innerHTML = `<div class="chart-wrap chart-wrap-sm">
+        <canvas id="minutes-canvas" aria-label="Exercise minutes per week chart"></canvas>
+      </div>`;
+
+      if (chartMinutes) chartMinutes.destroy();
+
+      chartMinutes = new Chart(document.getElementById('minutes-canvas'), {
+        type: 'bar',
+        data: {
+          labels: data.labels,
+          datasets: [{
+            label:           'Minutes',
+            data:            data.data,
+            backgroundColor: 'rgba(16, 185, 129, 0.8)',
+            hoverBackgroundColor: 'rgba(16, 185, 129, 1)',
+            borderRadius:    6,
+            borderSkipped:   false,
+          }],
+        },
+        options: {
+          responsive:          true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend:  { display: false },
+            tooltip: {
+              mode: 'index',
+              intersect: false,
+              callbacks: {
+                label: ctx => ' ' + fmtTime(ctx.parsed.y),
+              },
+            },
+          },
+          scales: {
+            x: xAxis,
+            y: {
+              ...yAxisBase,
+              ticks: {
+                ...tickOpts,
+                callback: v => fmtTime(v),
+              },
+            },
+          },
+        },
+      });
+    }
+
+    // ── Render summary stat cards ──────────────────────────────
+    function renderSummary(summary) {
+      document.getElementById('stat-workouts').textContent =
+        summary.totalWorkouts + (summary.totalWorkouts === 1 ? ' workout' : ' workouts');
+
+      const mins = summary.activeMinutes;
+      document.getElementById('stat-time').textContent = fmtTime(mins);
+
+      document.getElementById('stat-streak').textContent =
+        summary.streak + (summary.streak === 1 ? ' day' : ' days');
+
+      if (summary.weightChange) {
+        document.getElementById('stat-weight').textContent = summary.weightChange;
+        const isNeg = summary.weightChange.startsWith('-');
+        const isPos = summary.weightChange.startsWith('+');
+        const badge = document.getElementById('stat-weight-badge');
+        if (isNeg) {
+          badge.innerHTML = `<span class="stat-change stat-change-neg">▼ Lost</span>`;
+        } else if (isPos) {
+          badge.innerHTML = `<span class="stat-change stat-change-pos">▲ Gained</span>`;
+        }
+      } else {
+        document.getElementById('stat-weight').textContent = '—';
+      }
+    }
+
+    // ── Render history table ───────────────────────────────────
+    function renderHistory(rows) {
+      const wrap = document.getElementById('history-table-wrap');
+
+      if (!rows.length) {
+        wrap.innerHTML = emptyState(
+          '📋',
+          'No workouts logged for this period.',
+          `<a href="workout.html" style="color:var(--primary);">Log your first workout →</a>`
+        );
+        return;
+      }
+
+      const rowsHtml = rows.map(w => `
+        <tr>
+          <td class="td-date">${w.date}</td>
+          <td class="td-title">${w.title}</td>
+          <td>${typeBadge(w.type)}</td>
+          <td>${w.duration ? fmtTime(w.duration) : '<span class="td-muted">—</span>'}</td>
+          <td>${w.calories ? w.calories + ' kcal' : '<span class="td-muted">—</span>'}</td>
+        </tr>`).join('');
+
+      wrap.innerHTML = `
+        <table class="history-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Workout</th>
+              <th>Type</th>
+              <th>Duration</th>
+              <th>Calories</th>
+            </tr>
+          </thead>
+          <tbody id="history-tbody">${rowsHtml}</tbody>
+        </table>`;
+    }
+
+    // ── Filter history by search query ─────────────────────────
+    function filterHistory(query) {
+      const q    = query.toLowerCase().trim();
+      const rows = q
+        ? allHistoryRows.filter(w =>
+            w.title.toLowerCase().includes(q) ||
+            w.type.toLowerCase().includes(q)  ||
+            w.date.toLowerCase().includes(q))
+        : allHistoryRows;
+
+      renderHistory(rows);
+    }
+
+    // ── Main render function ───────────────────────────────────
+    function renderProgress(p) {
+      renderSummary(p.summary);
+      renderWeightChart(p.weight);
+      renderWorkoutsChart(p.workoutsPerWeek);
+      renderMinutesChart(p.minutesPerWeek);
+
+      allHistoryRows = p.history;
+      renderHistory(p.history);
+    }
+
+    // ── Fetch progress data from API ───────────────────────────
+    async function loadProgress(days) {
+      try {
+        const params = days ? `?days=${days}` : '?days=30';
+        const res    = await fetch(`${API_BASE}/progress${params}`, {
+          headers: Auth.getHeaders(),
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+          console.error('[Progress] API error:', data.message);
+          return;
+        }
+
+        renderProgress(data.progress);
+
+      } catch (err) {
+        console.warn('[Progress] Could not load data:', err.message);
+      }
+    }
+
+    // ── Time range picker ──────────────────────────────────────
+    document.getElementById('time-range').addEventListener('change', e => {
+      loadProgress(e.target.value);
+    });
+
+    // ── History search ─────────────────────────────────────────
+    document.getElementById('history-search').addEventListener('input', e => {
+      filterHistory(e.target.value);
+    });
+
+    // ── Logout ─────────────────────────────────────────────────
+    document.getElementById('logout-btn').addEventListener('click', () => {
+      Auth.clearToken();
+      window.location.href = 'index.html';
+    });
+
+    // ── Init ───────────────────────────────────────────────────
+    loadProgress('30');
+  </script>
+</body>
+</html>

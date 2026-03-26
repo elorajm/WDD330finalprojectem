@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard — Fitness Goal Tracker</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <style>
+    /* ── Skeleton loading ── */
+    .skeleton {
+      display: inline-block;
+      background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.4s infinite;
+      border-radius: 4px;
+      color: transparent !important;
+      user-select: none;
+    }
+    @keyframes shimmer { to { background-position: -200% 0; } }
+
+    /* ── Workout suggestion card ── */
+    .suggestion-card {
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      background: linear-gradient(135deg, #eff6ff, #dbeafe);
+      border: 1.5px solid #bfdbfe;
+      margin-bottom: 1rem;
+    }
+    .suggestion-title { font-size: 1.1rem; font-weight: 700; color: var(--gray-800); margin: 0 0 0.35rem; }
+    .suggestion-desc  { font-size: 0.875rem; color: var(--gray-600); margin: 0 0 0.75rem; }
+    .suggestion-meta  { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+    .meta-pill {
+      font-size: 0.75rem; font-weight: 600;
+      padding: 0.2rem 0.65rem;
+      border-radius: 9999px;
+      background: white;
+      color: var(--primary);
+      border: 1px solid #bfdbfe;
+    }
+
+    /* ── Avatar coach card ── */
+    .avatar-display {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+      padding: 1rem;
+      background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+      border-radius: var(--radius);
+      border: 1.5px solid #bae6fd;
+      margin-bottom: 1rem;
+    }
+    .avatar-big  { font-size: 4rem; line-height: 1; }
+    .avatar-info { flex: 1; }
+    .avatar-name { font-size: 1rem; font-weight: 700; color: var(--gray-800); margin: 0 0 0.2rem; }
+    .avatar-sub  { font-size: 0.8rem; color: var(--gray-500); margin: 0 0 0.4rem; }
+    .avatar-msg  {
+      font-size: 0.85rem; font-style: italic;
+      color: var(--gray-700);
+      background: white;
+      padding: 0.6rem 0.875rem;
+      border-radius: var(--radius);
+      border-left: 3px solid var(--primary);
+      margin: 0;
+    }
+
+    /* ── Setup prompt ── */
+    .setup-prompt {
+      text-align: center;
+      padding: 1.5rem;
+      background: #fefce8;
+      border-radius: var(--radius);
+      border: 1.5px dashed #fde047;
+    }
+    .setup-prompt p { margin: 0 0 0.75rem; color: var(--gray-600); font-size: 0.875rem; }
+
+    /* ── Intensity badge colours ── */
+    .intensity-Low       { color: #15803d; background: #dcfce7; }
+    .intensity-Moderate  { color: #1d4ed8; background: #dbeafe; }
+    .intensity-High      { color: #c2410c; background: #ffedd5; }
+    .intensity-Very-High { color: #9f1239; background: #ffe4e6; }
+
+    /* ── Exercise of the Day ── */
+    .exercise-card {
+      padding: 1rem 1.25rem;
+      background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+      border: 1.5px solid #86efac;
+      border-radius: var(--radius);
+    }
+    .exercise-card-title { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #15803d; margin: 0 0 0.35rem; }
+    .exercise-name  { font-size: 1rem; font-weight: 700; color: var(--gray-800); margin: 0 0 0.4rem; }
+    .exercise-desc  { font-size: 0.8rem; color: var(--gray-600); margin: 0 0 0.65rem; line-height: 1.5; }
+    .exercise-pills { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+    .exercise-pill {
+      font-size: 0.7rem; font-weight: 600;
+      padding: 0.15rem 0.55rem;
+      border-radius: 9999px;
+      background: white;
+      color: #15803d;
+      border: 1px solid #86efac;
+    }
+    .exercise-pill-stat {
+      font-size: 0.7rem; font-weight: 600;
+      padding: 0.15rem 0.55rem;
+      border-radius: 9999px;
+      background: #15803d;
+      color: white;
+    }
+    .exercise-tip {
+      font-size: 0.78rem; font-style: italic;
+      color: var(--gray-500);
+      margin: 0.6rem 0 0;
+      padding: 0.5rem 0.75rem;
+      background: white;
+      border-radius: 6px;
+      border-left: 3px solid #86efac;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation -->
+  <header>
+    <nav class="navbar" aria-label="Main navigation">
+      <div class="navbar-inner">
+        <a href="dashboard.html" class="navbar-brand">
+          <div class="brand-icon">💪</div>
+          FitTracker
+        </a>
+        <ul class="navbar-nav" role="list">
+          <li><a href="dashboard.html" class="nav-link">🏠 Dashboard</a></li>
+          <li><a href="workout.html"   class="nav-link">🏋️ Workout</a></li>
+          <li><a href="metrics.html"   class="nav-link">📏 Metrics</a></li>
+          <li><a href="progress.html"  class="nav-link">📈 Progress</a></li>
+          <li><a href="avatar.html"    class="nav-link">🧑 Avatar</a></li>
+        </ul>
+        <div class="nav-actions">
+          <div class="nav-avatar" id="nav-initial" aria-label="User profile">🧑</div>
+          <button id="logout-btn" class="btn btn-outline btn-sm">Log Out</button>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <main class="page-wrapper">
+
+    <!-- ── Page Header ─────────────────────────────────────── -->
+    <div class="page-header d-flex justify-between align-center">
+      <div>
+        <h1 class="page-title" id="greeting">Good morning! 👋</h1>
+        <p class="page-subtitle" id="goal-subtitle">Loading your fitness overview…</p>
+      </div>
+      <span class="badge badge-success">● Active</span>
+    </div>
+
+    <!-- ── Stat Cards ──────────────────────────────────────── -->
+    <div class="grid-4" style="margin-bottom:1.5rem;">
+
+      <div class="stat-card">
+        <div class="stat-icon orange">🔥</div>
+        <div>
+          <div class="stat-value skeleton" id="stat-streak">0</div>
+          <div class="stat-label">Day Streak</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon blue">🏋️</div>
+        <div>
+          <div class="stat-value skeleton" id="stat-workouts">0</div>
+          <div class="stat-label">Workouts This Week</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon green">⚡</div>
+        <div>
+          <div class="stat-value skeleton" id="stat-calories">0</div>
+          <div class="stat-label">Calories This Week</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon purple">🎯</div>
+        <div>
+          <div class="stat-value skeleton" id="stat-level">—</div>
+          <div class="stat-label">Fitness Level</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ── Main Grid ───────────────────────────────────────── -->
+    <div class="grid-2">
+
+      <!-- Today's Workout Suggestion -->
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">Today's Workout</h2>
+          <a href="workout.html" class="btn btn-primary btn-sm">Log Workout</a>
+        </div>
+
+        <!-- Populated by JS -->
+        <div id="suggestion-area">
+          <div class="suggestion-card">
+            <p class="suggestion-title skeleton" style="width:60%;height:1.1rem;">&nbsp;</p>
+            <p class="suggestion-desc skeleton" style="width:90%;height:0.875rem;margin-top:0.5rem;">&nbsp;</p>
+          </div>
+        </div>
+
+        <!-- Exercise of the Day (from wger API / local fallback, cached in localStorage) -->
+        <div id="exercise-area" style="margin-top:0.75rem;"></div>
+
+        <p class="text-sm text-muted" style="margin:0;">
+          Based on your goal and level. <a href="avatar.html" style="color:var(--primary);">Change settings →</a>
+        </p>
+      </div>
+
+      <!-- Avatar Coach -->
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">Your Coach</h2>
+          <a href="avatar.html" class="btn btn-outline btn-sm">Edit</a>
+        </div>
+
+        <!-- Populated by JS — shows setup prompt if profile not configured -->
+        <div id="avatar-area">
+          <div class="avatar-display">
+            <div class="avatar-big skeleton" id="avatar-emoji" style="width:4rem;height:4rem;border-radius:50%;">&nbsp;</div>
+            <div class="avatar-info">
+              <p class="avatar-name skeleton" style="width:5rem;height:1rem;">&nbsp;</p>
+              <p class="avatar-sub skeleton"  style="width:7rem;height:0.8rem;margin-top:0.3rem;">&nbsp;</p>
+            </div>
+          </div>
+          <p class="avatar-msg skeleton" style="height:2.5rem;">&nbsp;</p>
+        </div>
+      </div>
+
+      <!-- Goal Progress -->
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">Goal Progress</h2>
+          <a href="progress.html" class="btn btn-outline btn-sm">View All</a>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:1rem;">
+          <div>
+            <div class="d-flex justify-between align-center" style="margin-bottom:.4rem;">
+              <span class="text-sm" id="goal-label">Overall Goal</span>
+              <span class="text-sm fw-bold" id="progress-pct">0%</span>
+            </div>
+            <div class="progress-wrap">
+              <div class="progress-fill" id="progress-bar" style="width:0%;transition:width 0.8s ease;"></div>
+            </div>
+          </div>
+          <div>
+            <div class="d-flex justify-between align-center" style="margin-bottom:.4rem;">
+              <span class="text-sm">Weekly Consistency</span>
+              <span class="text-sm fw-bold" id="consistency-pct">0%</span>
+            </div>
+            <div class="progress-wrap">
+              <div class="progress-fill" id="consistency-bar" style="width:0%;background:var(--success,#22c55e);transition:width 0.8s ease;"></div>
+            </div>
+          </div>
+        </div>
+
+        <p class="text-sm text-muted" style="margin-top:1rem;">
+          Log workouts to build your streak and progress.
+        </p>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">Quick Actions</h2>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:0.75rem;">
+          <a href="workout.html"  class="btn btn-primary">🏋️ Log a Workout</a>
+          <a href="metrics.html"  class="btn btn-outline">📏 Add Body Metrics</a>
+          <a href="avatar.html"   class="btn btn-outline">🧑 Customize Avatar</a>
+          <a href="progress.html" class="btn btn-outline">📈 View Progress</a>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <footer class="footer">Fitness Goal Tracker &copy; 2025 &mdash; WDD330</footer>
+
+  <script src="js/main.js"></script>
+  <script>
+    requireAuth();
+
+    // ── Avatar emoji map (matches avatar.html) ────────────────
+    const EMOJIS = {
+      male:   { beginner: '🧑',  intermediate: '🏃‍♂️', advanced: '🏋️‍♂️' },
+      female: { beginner: '👩',  intermediate: '🏃‍♀️', advanced: '🏋️‍♀️' },
+    };
+
+    const LEVEL_LABELS = {
+      beginner:     '🌱 Beginner',
+      intermediate: '⚡ Intermediate',
+      advanced:     '🚀 Advanced',
+    };
+
+    const GOAL_LABELS = {
+      lose_weight:      '🔥 Lose Weight',
+      build_muscle:     '💪 Build Muscle',
+      maintain_fitness: '🏃 Maintain Fitness',
+      endurance:        '🏅 Endurance',
+      flexibility:      '🧘 Flexibility',
+      general_health:   '❤️ General Health',
+    };
+
+    const COACH_MSGS = {
+      motivational: (name) => `"Let's crush today, ${name}! Every rep is progress!"`,
+      calm:         (name) => `"You're doing great, ${name}. One step at a time."`,
+      strict:       (name) => `"No rest days for champions, ${name}. Get after it."`,
+    };
+
+    const INTENSITY_CSS = {
+      'Low':       'intensity-Low',
+      'Moderate':  'intensity-Moderate',
+      'High':      'intensity-High',
+      'Very High': 'intensity-Very-High',
+    };
+
+    // ── Remove skeleton class from element ────────────────────
+    function unSkeleton(id) {
+      document.getElementById(id)?.classList.remove('skeleton');
+    }
+
+    // ── Populate dashboard ────────────────────────────────────
+    function renderDashboard(data) {
+      const { user, stats, todaySuggestion } = data;
+
+      // ── Greeting ──
+      const hour = new Date().getHours();
+      const tod  = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+      const firstName = user.name ? user.name.split(' ')[0] : 'Athlete';
+      document.getElementById('greeting').textContent = `${tod}, ${firstName}! 👋`;
+      document.getElementById('goal-subtitle').textContent =
+        `Your goal: ${GOAL_LABELS[user.fitnessGoal] || user.fitnessGoal} · ${LEVEL_LABELS[user.fitnessLevel] || user.fitnessLevel}`;
+
+      // ── Nav initial ──
+      if (user.name) {
+        document.getElementById('nav-initial').textContent = user.name.charAt(0).toUpperCase();
+      }
+
+      // ── Stat cards ──
+      const streak   = document.getElementById('stat-streak');
+      const workouts = document.getElementById('stat-workouts');
+      const calories = document.getElementById('stat-calories');
+      const level    = document.getElementById('stat-level');
+
+      streak.textContent   = stats.streak       + (stats.streak   === 1 ? ' day'  : ' days');
+      workouts.textContent = stats.workoutsWeek  + (stats.workoutsWeek === 1 ? ' session' : ' sessions');
+      calories.textContent = stats.caloriesWeek  > 0 ? stats.caloriesWeek + ' kcal' : '—';
+      level.textContent    = LEVEL_LABELS[user.fitnessLevel] || '—';
+
+      ['stat-streak','stat-workouts','stat-calories','stat-level'].forEach(unSkeleton);
+
+      // ── Today's workout suggestion ──
+      const intensityClass = INTENSITY_CSS[todaySuggestion.intensity] || 'intensity-Moderate';
+      document.getElementById('suggestion-area').innerHTML = `
+        <div class="suggestion-card">
+          <p class="suggestion-title">${todaySuggestion.title}</p>
+          <p class="suggestion-desc">${todaySuggestion.desc}</p>
+          <div class="suggestion-meta">
+            <span class="meta-pill">⏱ ${todaySuggestion.duration} min</span>
+            <span class="meta-pill ${intensityClass}">${todaySuggestion.intensity} Intensity</span>
+            <span class="meta-pill">${GOAL_LABELS[user.fitnessGoal] || user.fitnessGoal}</span>
+          </div>
+        </div>
+      `;
+
+      // ── Avatar coach ──
+      const profileSet = user.fitnessGoal !== 'general_health' || user.coachName !== 'Coach';
+      const emoji      = EMOJIS[user.gender]?.[user.fitnessLevel] || '🧑';
+      const msgFn      = COACH_MSGS[user.coachingStyle] || COACH_MSGS.motivational;
+
+      document.getElementById('avatar-area').innerHTML = `
+        <div class="avatar-display">
+          <div class="avatar-big">${emoji}</div>
+          <div class="avatar-info">
+            <p class="avatar-name">${user.coachName}</p>
+            <p class="avatar-sub">${LEVEL_LABELS[user.fitnessLevel]} · ${GOAL_LABELS[user.fitnessGoal] || ''}</p>
+          </div>
+        </div>
+        <p class="avatar-msg">${msgFn(firstName)}</p>
+        ${!profileSet ? `
+          <div class="setup-prompt" style="margin-top:1rem;">
+            <p>Personalize your coach for custom motivation!</p>
+            <a href="avatar.html" class="btn btn-primary btn-sm">Set Up Avatar →</a>
+          </div>` : ''}
+      `;
+
+      // ── Goal progress bars ──
+      // Consistency = workouts this week out of 5 target
+      const consistency = Math.min(Math.round((stats.workoutsWeek / 5) * 100), 100);
+      document.getElementById('goal-label').textContent      = GOAL_LABELS[user.fitnessGoal] || 'Overall Goal';
+      document.getElementById('progress-pct').textContent    = stats.goalProgress + '%';
+      document.getElementById('consistency-pct').textContent = consistency + '%';
+      setTimeout(() => {
+        document.getElementById('progress-bar').style.width    = stats.goalProgress + '%';
+        document.getElementById('consistency-bar').style.width = consistency + '%';
+      }, 100);
+    }
+
+    // ── Fetch dashboard data ──────────────────────────────────
+    async function loadDashboard() {
+      try {
+        const res  = await fetch(`${API_BASE}/users/dashboard`, {
+          headers: Auth.getHeaders(),
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+          console.error('[Dashboard] API error:', data.message);
+          return;
+        }
+
+        renderDashboard(data.dashboard);
+
+      } catch (err) {
+        console.warn('[Dashboard] Could not load data:', err.message);
+        // Remove skeletons so page isn't stuck
+        ['stat-streak','stat-workouts','stat-calories','stat-level'].forEach(unSkeleton);
+        document.getElementById('suggestion-area').innerHTML =
+          '<p class="text-sm text-muted">Could not load suggestion. Is the server running?</p>';
+      }
+    }
+
+    // ── Exercise of the Day ──────────────────────────────────
+    function renderExercise(s) {
+      const area = document.getElementById('exercise-area');
+      if (!s || !s.name) { area.innerHTML = ''; return; }
+
+      const musclePills = (s.muscles || [])
+        .map(m => `<span class="exercise-pill">${m}</span>`)
+        .join('');
+      const statPills = [
+        s.sets ? `<span class="exercise-pill-stat">Sets: ${s.sets}</span>` : '',
+        s.reps ? `<span class="exercise-pill-stat">Reps: ${s.reps}</span>` : '',
+      ].filter(Boolean).join('');
+      const tip = s.tip
+        ? `<p class="exercise-tip">💡 ${s.tip}</p>`
+        : '';
+
+      area.innerHTML = `
+        <div class="exercise-card">
+          <p class="exercise-card-title">🏅 Exercise of the Day</p>
+          <p class="exercise-name">${s.name}</p>
+          <p class="exercise-desc">${s.description}</p>
+          <div class="exercise-pills">
+            ${statPills}
+            ${musclePills}
+          </div>
+          ${tip}
+        </div>`;
+    }
+
+    async function loadExerciseSuggestion() {
+      const todayKey = 'fgt_exercise_' + new Date().toISOString().split('T')[0];
+
+      // Return cached version if it exists for today
+      try {
+        const cached = localStorage.getItem(todayKey);
+        if (cached) {
+          renderExercise(JSON.parse(cached));
+          return;
+        }
+      } catch (_) { /* ignore bad cache */ }
+
+      // Fetch from backend
+      try {
+        const res  = await fetch(`${API_BASE}/suggestions/today`, {
+          headers: Auth.getHeaders(),
+        });
+        const data = await res.json();
+        if (!res.ok || !data.suggestion) return;
+
+        // Cache for the rest of the day
+        try { localStorage.setItem(todayKey, JSON.stringify(data.suggestion)); } catch (_) {}
+
+        renderExercise(data.suggestion);
+      } catch (err) {
+        console.warn('[Dashboard] Could not load exercise suggestion:', err.message);
+      }
+    }
+
+    // ── Logout ────────────────────────────────────────────────
+    document.getElementById('logout-btn').addEventListener('click', () => {
+      Auth.clearToken();
+      window.location.href = 'index.html';
+    });
+
+    // ── Init ──────────────────────────────────────────────────
+    loadDashboard();
+    loadExerciseSuggestion();
+  </script>
+</body>
+</html>

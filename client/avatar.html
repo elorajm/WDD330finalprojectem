@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Avatar Coach — Fitness Goal Tracker</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <style>
+    /* ── Avatar stage ── */
+    #avatar-stage {
+      border-radius: var(--radius);
+      min-height: 240px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px dashed #bfdbfe;
+      margin-bottom: 1rem;
+      transition: background 0.4s ease;
+    }
+    #avatar-emoji   { font-size: 5.5rem; line-height: 1; transition: all 0.3s ease; }
+    #avatar-name-tag {
+      margin-top: 0.75rem;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--primary);
+      background: white;
+      padding: 0.25rem 1rem;
+      border-radius: 9999px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.1);
+      display: inline-block;
+    }
+    #level-badge {
+      margin-top: 0.5rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.2rem 0.75rem;
+      border-radius: 9999px;
+      background: var(--primary);
+      color: white;
+      display: inline-block;
+    }
+
+    /* ── Level buttons ── */
+    .level-btn         { flex: 1; transition: all 0.2s; }
+    .level-btn.active  { background: var(--primary) !important; color: white !important;
+                         border-color: var(--primary) !important; }
+
+    /* ── Save feedback ── */
+    #save-feedback {
+      display: none;
+      padding: 0.75rem 1rem;
+      border-radius: var(--radius);
+      font-size: 0.875rem;
+      font-weight: 500;
+      margin-top: 0.75rem;
+    }
+    #save-feedback.success { background: #dcfce7; color: #15803d; border: 1px solid #86efac; }
+    #save-feedback.error   { background: #fef2f2; color: #dc2626; border: 1px solid #fca5a5; }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation -->
+  <header>
+    <nav class="navbar" aria-label="Main navigation">
+      <div class="navbar-inner">
+        <a href="dashboard.html" class="navbar-brand">
+          <div class="brand-icon">💪</div>
+          FitTracker
+        </a>
+        <ul class="navbar-nav" role="list">
+          <li><a href="dashboard.html" class="nav-link">🏠 Dashboard</a></li>
+          <li><a href="workout.html"   class="nav-link">🏋️ Workout</a></li>
+          <li><a href="metrics.html"   class="nav-link">📏 Metrics</a></li>
+          <li><a href="progress.html"  class="nav-link">📈 Progress</a></li>
+          <li><a href="avatar.html"    class="nav-link">🧑 Avatar</a></li>
+        </ul>
+        <div class="nav-actions">
+          <div class="nav-avatar" id="nav-user-initial" aria-label="User profile">🧑</div>
+          <button id="logout-btn" class="btn btn-outline btn-sm">Log Out</button>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <main class="page-wrapper">
+
+    <div class="page-header">
+      <h1 class="page-title">🧑 Avatar Coach Setup</h1>
+      <p class="page-subtitle">Personalize your coach and set your fitness goals.</p>
+    </div>
+
+    <div class="grid-2">
+
+      <!-- ── Left: Live Preview ─────────────────────────────── -->
+      <div>
+        <div class="card" style="margin-bottom:1.5rem;">
+          <div class="card-header">
+            <h2 class="card-title">Live Preview</h2>
+            <span class="badge badge-primary" id="preview-goal-badge">General Health</span>
+          </div>
+
+          <!-- Avatar Stage -->
+          <div id="avatar-stage" style="background:linear-gradient(135deg,#eff6ff,#dbeafe);">
+            <div style="text-align:center;">
+              <div id="avatar-emoji" aria-label="Avatar">🧑</div>
+              <div>
+                <div id="avatar-name-tag">Coach</div>
+              </div>
+              <div id="level-badge">🌱 Beginner</div>
+            </div>
+          </div>
+
+          <!-- Coach Message -->
+          <div style="background:#eff6ff;border-radius:var(--radius);padding:0.75rem 1rem;
+                      border-left:4px solid var(--primary-light);">
+            <p id="coach-msg" style="font-style:italic;font-size:0.875rem;color:var(--gray-600);margin:0;">
+              "Hi! I'm your coach. Fill in your details and I'll motivate you every step of the way!"
+            </p>
+          </div>
+        </div>
+
+        <!-- Profile Summary Card -->
+        <div class="card" id="profile-summary" style="display:none;">
+          <div class="card-header">
+            <h3 class="card-title" style="font-size:0.9rem;">Your Profile</h3>
+          </div>
+          <div style="font-size:0.875rem;display:flex;flex-direction:column;gap:0.4rem;">
+            <div><strong>Name:</strong> <span id="sum-name">—</span></div>
+            <div><strong>Goal:</strong> <span id="sum-goal">—</span></div>
+            <div><strong>Level:</strong> <span id="sum-level">—</span></div>
+            <div><strong>Style:</strong> <span id="sum-style">—</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Right: Settings Form ───────────────────────────── -->
+      <div>
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">Profile Settings</h2>
+            <span id="loading-indicator" style="font-size:0.75rem;color:var(--gray-400);">Loading…</span>
+          </div>
+
+          <form id="avatar-form" novalidate>
+
+            <!-- Display Name -->
+            <div class="form-group">
+              <label for="field-name" class="form-label">Your Name</label>
+              <input type="text" id="field-name" class="form-control"
+                     placeholder="e.g. Jane Smith" maxlength="50" />
+            </div>
+
+            <!-- Coach Name -->
+            <div class="form-group">
+              <label for="field-coach-name" class="form-label">Coach Name</label>
+              <input type="text" id="field-coach-name" class="form-control"
+                     placeholder="e.g. Max, Coach K…" maxlength="30" />
+            </div>
+
+            <!-- Gender -->
+            <div class="form-group">
+              <label class="form-label">Appearance</label>
+              <div style="display:flex;gap:1rem;">
+                <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;
+                              font-size:0.875rem;padding:0.75rem 1rem;
+                              border:1.5px solid var(--gray-200);border-radius:var(--radius);flex:1;">
+                  <input type="radio" name="gender" value="male" checked /> 🧑 Male
+                </label>
+                <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;
+                              font-size:0.875rem;padding:0.75rem 1rem;
+                              border:1.5px solid var(--gray-200);border-radius:var(--radius);flex:1;">
+                  <input type="radio" name="gender" value="female" /> 👩 Female
+                </label>
+              </div>
+            </div>
+
+            <!-- Fitness Goal -->
+            <div class="form-group">
+              <label for="field-goal" class="form-label">Fitness Goal</label>
+              <select id="field-goal" class="form-control">
+                <option value="lose_weight">🔥 Lose Weight</option>
+                <option value="build_muscle">💪 Build Muscle</option>
+                <option value="maintain_fitness">🏃 Maintain Fitness</option>
+                <option value="endurance">🏅 Endurance</option>
+                <option value="flexibility">🧘 Flexibility</option>
+                <option value="general_health" selected>❤️ General Health</option>
+              </select>
+            </div>
+
+            <!-- Fitness Level -->
+            <div class="form-group">
+              <label class="form-label">Fitness Level</label>
+              <div style="display:flex;gap:0.5rem;">
+                <button type="button" class="btn btn-outline level-btn active" data-level="beginner"
+                        style="flex:1;">🌱 Beginner</button>
+                <button type="button" class="btn btn-outline level-btn" data-level="intermediate"
+                        style="flex:1;">⚡ Intermediate</button>
+                <button type="button" class="btn btn-outline level-btn" data-level="advanced"
+                        style="flex:1;">🚀 Advanced</button>
+              </div>
+              <input type="hidden" id="field-level" value="beginner" />
+            </div>
+
+            <!-- Coaching Style -->
+            <div class="form-group">
+              <label for="field-style" class="form-label">Coaching Style</label>
+              <select id="field-style" class="form-control">
+                <option value="motivational">🔥 Motivational</option>
+                <option value="calm">🧘 Calm &amp; Steady</option>
+                <option value="strict">💼 Strict Drill Sergeant</option>
+              </select>
+            </div>
+
+            <!-- Feedback -->
+            <div id="save-feedback"></div>
+
+            <div style="display:flex;gap:0.75rem;margin-top:1rem;">
+              <button type="submit" id="save-btn" class="btn btn-primary" style="flex:1;">
+                💾 Save Profile
+              </button>
+            </div>
+
+          </form>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <footer class="footer">Fitness Goal Tracker &copy; 2025 &mdash; WDD330</footer>
+
+  <script src="js/main.js"></script>
+  <script>
+    requireAuth();
+
+    // ── Avatar data maps ──────────────────────────────────────
+    const EMOJIS = {
+      male:   { beginner: '🧑',   intermediate: '🏃‍♂️',  advanced: '🏋️‍♂️' },
+      female: { beginner: '👩',   intermediate: '🏃‍♀️',  advanced: '🏋️‍♀️' },
+    };
+
+    const GOAL_BG = {
+      lose_weight:      'linear-gradient(135deg,#fef9c3,#fde68a)',
+      build_muscle:     'linear-gradient(135deg,#ede9fe,#ddd6fe)',
+      maintain_fitness: 'linear-gradient(135deg,#dcfce7,#bbf7d0)',
+      endurance:        'linear-gradient(135deg,#dbeafe,#bfdbfe)',
+      flexibility:      'linear-gradient(135deg,#fce7f3,#fbcfe8)',
+      general_health:   'linear-gradient(135deg,#eff6ff,#dbeafe)',
+    };
+
+    const GOAL_LABELS = {
+      lose_weight:      '🔥 Lose Weight',
+      build_muscle:     '💪 Build Muscle',
+      maintain_fitness: '🏃 Maintain Fitness',
+      endurance:        '🏅 Endurance',
+      flexibility:      '🧘 Flexibility',
+      general_health:   '❤️ General Health',
+    };
+
+    const LEVEL_LABELS = {
+      beginner:     '🌱 Beginner',
+      intermediate: '⚡ Intermediate',
+      advanced:     '🚀 Advanced',
+    };
+
+    const STYLE_LABELS = {
+      motivational: '🔥 Motivational',
+      calm:         '🧘 Calm & Steady',
+      strict:       '💼 Strict',
+    };
+
+    const COACH_MSGS = {
+      motivational: '"You\'ve got this! Every rep, every step — you\'re getting stronger!"',
+      calm:         '"Breathe. Focus. Trust the process — progress is happening."',
+      strict:       '"No excuses. Show up, put in the work, and earn your results."',
+    };
+
+    const GOAL_MSGS = {
+      lose_weight:      '"Every calorie burned is progress. Stay consistent!"',
+      build_muscle:     '"muscles are built in the gym, revealed in the kitchen. Let\'s work!"',
+      maintain_fitness: '"Consistency beats intensity. Keep showing up!"',
+      endurance:        '"Your lungs will thank you later. Push that pace!"',
+      flexibility:      '"Mobility is strength. Stretch, breathe, grow."',
+      general_health:   '"A healthy life is a happy life. Let\'s build great habits!"',
+    };
+
+    // ── Live preview update ───────────────────────────────────
+    function updatePreview() {
+      const gender    = document.querySelector('input[name="gender"]:checked')?.value || 'male';
+      const level     = document.getElementById('field-level').value || 'beginner';
+      const goal      = document.getElementById('field-goal').value  || 'general_health';
+      const style     = document.getElementById('field-style').value || 'motivational';
+      const coachName = document.getElementById('field-coach-name').value.trim() || 'Coach';
+
+      document.getElementById('avatar-emoji').textContent     = EMOJIS[gender][level];
+      document.getElementById('avatar-name-tag').textContent  = coachName;
+      document.getElementById('level-badge').textContent      = LEVEL_LABELS[level];
+      document.getElementById('avatar-stage').style.background = GOAL_BG[goal];
+      document.getElementById('preview-goal-badge').textContent = GOAL_LABELS[goal] || goal;
+      document.getElementById('coach-msg').textContent =
+        style !== 'motivational' ? COACH_MSGS[style] : GOAL_MSGS[goal] || COACH_MSGS.motivational;
+    }
+
+    // ── Form field listeners ──────────────────────────────────
+    document.getElementById('field-coach-name').addEventListener('input', updatePreview);
+    document.getElementById('field-goal').addEventListener('change', updatePreview);
+    document.getElementById('field-style').addEventListener('change', updatePreview);
+    document.querySelectorAll('input[name="gender"]').forEach(r =>
+      r.addEventListener('change', updatePreview));
+
+    // Level buttons
+    document.querySelectorAll('.level-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.level-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('field-level').value = btn.dataset.level;
+        updatePreview();
+      });
+    });
+
+    // ── Populate form from profile data ───────────────────────
+    function populateForm(profile) {
+      if (profile.name)     document.getElementById('field-name').value       = profile.name;
+      if (profile.coachName) document.getElementById('field-coach-name').value = profile.coachName;
+      if (profile.fitnessGoal) document.getElementById('field-goal').value    = profile.fitnessGoal;
+      if (profile.coachingStyle) document.getElementById('field-style').value = profile.coachingStyle;
+
+      // Gender radio
+      if (profile.gender) {
+        const radio = document.querySelector(`input[name="gender"][value="${profile.gender}"]`);
+        if (radio) radio.checked = true;
+      }
+
+      // Fitness level buttons
+      if (profile.fitnessLevel) {
+        document.getElementById('field-level').value = profile.fitnessLevel;
+        document.querySelectorAll('.level-btn').forEach(b => {
+          b.classList.toggle('active', b.dataset.level === profile.fitnessLevel);
+        });
+      }
+
+      // Nav initial
+      if (profile.name) {
+        document.getElementById('nav-user-initial').textContent =
+          profile.name.charAt(0).toUpperCase();
+      }
+
+      updatePreview();
+      updateSummary(profile);
+    }
+
+    // ── Profile summary card ──────────────────────────────────
+    function updateSummary(profile) {
+      document.getElementById('sum-name').textContent  = profile.name       || '—';
+      document.getElementById('sum-goal').textContent  = GOAL_LABELS[profile.fitnessGoal]   || '—';
+      document.getElementById('sum-level').textContent = LEVEL_LABELS[profile.fitnessLevel] || '—';
+      document.getElementById('sum-style').textContent = STYLE_LABELS[profile.coachingStyle] || '—';
+      document.getElementById('profile-summary').style.display = 'block';
+    }
+
+    // ── Show feedback message ─────────────────────────────────
+    function showFeedback(msg, type) {
+      const el = document.getElementById('save-feedback');
+      el.textContent   = msg;
+      el.className     = type;
+      el.style.display = 'block';
+      setTimeout(() => { el.style.display = 'none'; }, 4000);
+    }
+
+    // ── Load profile on page open ─────────────────────────────
+    async function loadProfile() {
+      try {
+        const res  = await fetch(`${API_BASE}/users/profile`, {
+          headers: Auth.getHeaders(),
+        });
+        const data = await res.json();
+
+        document.getElementById('loading-indicator').textContent = '';
+
+        if (res.ok) {
+          populateForm(data.profile);
+        }
+      } catch (err) {
+        document.getElementById('loading-indicator').textContent = '';
+        console.warn('[Avatar] Could not load profile:', err.message);
+      }
+    }
+
+    // ── Save profile ──────────────────────────────────────────
+    document.getElementById('avatar-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const btn = document.getElementById('save-btn');
+      btn.disabled    = true;
+      btn.textContent = 'Saving…';
+
+      const payload = {
+        coachName:     document.getElementById('field-coach-name').value.trim(),
+        gender:        document.querySelector('input[name="gender"]:checked')?.value || 'male',
+        fitnessGoal:   document.getElementById('field-goal').value,
+        fitnessLevel:  document.getElementById('field-level').value,
+        coachingStyle: document.getElementById('field-style').value,
+      };
+
+      try {
+        const res  = await fetch(`${API_BASE}/users/profile`, {
+          method:  'PUT',
+          headers: Auth.getHeaders(),
+          body:    JSON.stringify(payload),
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+          showFeedback(data.message || 'Save failed. Please try again.', 'error');
+          return;
+        }
+
+        updateSummary(data.profile);
+        showFeedback('✅ Profile saved successfully!', 'success');
+        showToast('Profile saved!', 'success');
+
+      } catch (err) {
+        showFeedback('Cannot reach the server. Make sure it is running.', 'error');
+      } finally {
+        btn.disabled    = false;
+        btn.textContent = '💾 Save Profile';
+      }
+    });
+
+    // ── Logout ────────────────────────────────────────────────
+    document.getElementById('logout-btn').addEventListener('click', () => {
+      Auth.clearToken();
+      window.location.href = 'index.html';
+    });
+
+    // ── Init ──────────────────────────────────────────────────
+    updatePreview();
+    loadProfile();
+  </script>
+</body>
+</html>

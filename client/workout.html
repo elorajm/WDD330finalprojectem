@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Log Workout — Fitness Goal Tracker</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <style>
+    /* ── Type badges ── */
+    .type-badge {
+      display: inline-block;
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 0.15rem 0.55rem;
+      border-radius: 9999px;
+    }
+    .type-strength    { background: #ede9fe; color: #6d28d9; }
+    .type-cardio      { background: #dbeafe; color: #1d4ed8; }
+    .type-flexibility { background: #fce7f3; color: #9d174d; }
+    .type-sports      { background: #dcfce7; color: #15803d; }
+    .type-other       { background: #f1f5f9; color: #475569; }
+
+    /* ── Recent workout entry ── */
+    .recent-entry {
+      padding: 0.75rem 0;
+      border-bottom: 1px solid var(--gray-100);
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+    .recent-entry:last-child { border-bottom: none; }
+    .recent-title  { font-weight: 600; font-size: 0.875rem; color: var(--gray-800); }
+    .recent-date   { font-size: 0.75rem; color: var(--gray-400); margin-top: 0.15rem; }
+    .recent-pills  { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-top: 0.35rem; }
+    .mini-pill {
+      font-size: 0.7rem;
+      font-weight: 500;
+      padding: 0.1rem 0.45rem;
+      border-radius: 9999px;
+      background: var(--gray-100);
+      color: var(--gray-600);
+    }
+
+    /* ── Entry action buttons (edit / delete) ── */
+    .entry-actions {
+      display: flex;
+      gap: 0.35rem;
+      flex-shrink: 0;
+      margin-top: 0.1rem;
+    }
+    .btn-action {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 1.9rem;
+      height: 1.9rem;
+      border-radius: 6px;
+      border: 1px solid transparent;
+      background: transparent;
+      cursor: pointer;
+      font-size: 0.85rem;
+      line-height: 1;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .btn-action-edit   { border-color: var(--gray-200); color: var(--primary, #6366f1); }
+    .btn-action-edit:hover   { background: #eff6ff; border-color: #bfdbfe; }
+    .btn-action-delete { border-color: var(--gray-200); color: #ef4444; }
+    .btn-action-delete:hover { background: #fef2f2; border-color: #fca5a5; }
+
+    /* ── Edit mode banner ── */
+    #edit-banner {
+      display: none;
+      padding: 0.65rem 1rem;
+      border-radius: var(--radius);
+      background: #fef9c3;
+      border: 1.5px solid #fde047;
+      font-size: 0.825rem;
+      font-weight: 600;
+      color: #92400e;
+      margin-bottom: 1rem;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+    }
+    #edit-banner.visible { display: flex; }
+
+    /* ── Avatar stage milestone banner ── */
+    #stage-banner {
+      display: none;
+      margin-bottom: 1.5rem;
+      padding: 1rem 1.25rem;
+      border-radius: var(--radius);
+      background: linear-gradient(135deg, #fef9c3, #fde68a);
+      border: 1.5px solid #fcd34d;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #92400e;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation -->
+  <header>
+    <nav class="navbar" aria-label="Main navigation">
+      <div class="navbar-inner">
+        <a href="dashboard.html" class="navbar-brand">
+          <div class="brand-icon">💪</div>
+          FitTracker
+        </a>
+        <ul class="navbar-nav" role="list">
+          <li><a href="dashboard.html" class="nav-link">🏠 Dashboard</a></li>
+          <li><a href="workout.html"   class="nav-link">🏋️ Workout</a></li>
+          <li><a href="metrics.html"   class="nav-link">📏 Metrics</a></li>
+          <li><a href="progress.html"  class="nav-link">📈 Progress</a></li>
+          <li><a href="avatar.html"    class="nav-link">🧑 Avatar</a></li>
+        </ul>
+        <div class="nav-actions">
+          <div class="nav-avatar" id="nav-initial" aria-label="User profile">🧑</div>
+          <button id="logout-btn" class="btn btn-outline btn-sm">Log Out</button>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <main class="page-wrapper">
+
+    <div class="page-header">
+      <h1 class="page-title">🏋️ Log a Workout</h1>
+      <p class="page-subtitle">Record your session and track every rep.</p>
+    </div>
+
+    <!-- Avatar stage milestone banner (shown on level-up) -->
+    <div id="stage-banner"></div>
+
+    <div class="grid-2">
+
+      <!-- ── Workout Form ──────────────────────────────────────── -->
+      <div>
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title" id="form-title">Session Details</h2>
+            <span class="badge badge-primary" id="form-badge">New Entry</span>
+          </div>
+
+          <!-- Edit mode indicator -->
+          <div id="edit-banner">
+            <span id="edit-banner-text">✏️ Editing workout…</span>
+            <button type="button" id="cancel-edit-btn"
+                    class="btn btn-outline btn-sm" style="padding:0.2rem 0.6rem;font-size:0.75rem;">
+              ✕ Cancel
+            </button>
+          </div>
+
+          <form id="workout-form" novalidate>
+
+            <!-- Workout Name -->
+            <div class="form-group">
+              <label for="field-name" class="form-label">
+                Workout Name <span style="color:var(--danger,#ef4444);">*</span>
+              </label>
+              <input type="text" id="field-name" class="form-control"
+                     placeholder="e.g. Upper Body Strength" maxlength="100" />
+              <span class="field-error-msg"></span>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+              <!-- Date -->
+              <div class="form-group">
+                <label for="field-date" class="form-label">
+                  Date <span style="color:var(--danger,#ef4444);">*</span>
+                </label>
+                <input type="date" id="field-date" class="form-control" required />
+                <span class="field-error-msg"></span>
+              </div>
+
+              <!-- Type -->
+              <div class="form-group">
+                <label for="field-type" class="form-label">Type</label>
+                <select id="field-type" class="form-control">
+                  <option value="other"       selected>🌀 Other</option>
+                  <option value="strength">🏋️ Strength</option>
+                  <option value="cardio">🏃 Cardio / HIIT</option>
+                  <option value="flexibility">🧘 Flexibility / Yoga</option>
+                  <option value="sports">⚽ Sports</option>
+                </select>
+              </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+              <!-- Duration -->
+              <div class="form-group">
+                <label for="field-duration" class="form-label">Duration</label>
+                <input type="number" id="field-duration" class="form-control"
+                       placeholder="45" min="1" />
+                <p class="form-hint">Minutes</p>
+              </div>
+
+              <!-- Calories -->
+              <div class="form-group">
+                <label for="field-calories" class="form-label">Calories Burned</label>
+                <input type="number" id="field-calories" class="form-control"
+                       placeholder="350" min="0" />
+                <p class="form-hint">kcal (optional)</p>
+              </div>
+            </div>
+
+            <!-- Notes -->
+            <div class="form-group">
+              <label for="field-notes" class="form-label">Notes</label>
+              <textarea id="field-notes" class="form-control" rows="3" maxlength="500"
+                        placeholder="How did it feel? Any PRs?"
+                        style="resize:vertical;font-family:inherit;font-size:0.875rem;"></textarea>
+            </div>
+
+            <!-- Inline feedback -->
+            <div id="save-feedback"></div>
+
+            <div style="display:flex;gap:0.75rem;margin-top:0.25rem;">
+              <button type="submit" id="save-btn" class="btn btn-primary" style="flex:1;">
+                💾 Save Workout
+              </button>
+              <button type="button" id="clear-btn" class="btn btn-outline">Clear</button>
+            </div>
+
+          </form>
+        </div>
+      </div>
+
+      <!-- ── Workout History Sidebar ──────────────────────────── -->
+      <div>
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">Your Workouts</h2>
+            <a href="progress.html" class="btn btn-outline btn-sm">History</a>
+          </div>
+
+          <div id="recent-area">
+            <div class="loading-row">
+              <div class="spinner"></div>
+              <span>Loading workouts…</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Streak / stats mini card -->
+        <div class="card" style="margin-top:1.5rem;" id="stats-card">
+          <div class="card-header">
+            <h2 class="card-title">Quick Stats</h2>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:0.5rem;font-size:0.875rem;">
+            <div style="display:flex;justify-content:space-between;">
+              <span style="color:var(--gray-500);">🔥 Streak</span>
+              <strong id="qs-streak">—</strong>
+            </div>
+            <div style="display:flex;justify-content:space-between;">
+              <span style="color:var(--gray-500);">🏋️ Total Logged</span>
+              <strong id="qs-total">—</strong>
+            </div>
+            <div style="display:flex;justify-content:space-between;">
+              <span style="color:var(--gray-500);">🧑 Avatar Stage</span>
+              <strong id="qs-stage">—</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <footer class="footer">Fitness Goal Tracker &copy; 2025 &mdash; WDD330</footer>
+
+  <script src="js/main.js"></script>
+  <script>
+    requireAuth();
+
+    // ── State ─────────────────────────────────────────────────
+    let prevAvatarStage = null;
+    let editingId       = null;   // MongoDB _id of the workout being edited
+    let allWorkouts     = [];     // local cache of loaded workouts
+
+    const TYPE_LABELS = {
+      strength:    '🏋️ Strength',
+      cardio:      '🏃 Cardio',
+      flexibility: '🧘 Flexibility',
+      sports:      '⚽ Sports',
+      other:       '•• Other',
+    };
+
+    const STAGE_LABELS = {
+      beginner:     '🌱 Beginner',
+      intermediate: '⚡ Intermediate',
+      advanced:     '🚀 Advanced',
+    };
+
+    function calcStage(total) {
+      if (total >= 15) return 'advanced';
+      if (total >= 5)  return 'intermediate';
+      return 'beginner';
+    }
+
+    // ── Set today's date ───────────────────────────────────────
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('field-date').value = today;
+
+    // ── Draft Persistence ──────────────────────────────────────
+    function saveDraft() {
+      if (editingId !== null) return; // never overwrite draft while editing a saved entry
+      Draft.save('workout', {
+        name:     document.getElementById('field-name').value,
+        date:     document.getElementById('field-date').value,
+        type:     document.getElementById('field-type').value,
+        duration: document.getElementById('field-duration').value,
+        calories: document.getElementById('field-calories').value,
+        notes:    document.getElementById('field-notes').value,
+      });
+    }
+
+    ['field-name','field-date','field-duration','field-calories','field-notes']
+      .forEach(id => document.getElementById(id).addEventListener('input', saveDraft));
+    document.getElementById('field-type').addEventListener('change', saveDraft);
+
+    // Restore draft on page load
+    (function restoreDraft() {
+      const d = Draft.load('workout');
+      if (!d) return;
+      if (d.name)     document.getElementById('field-name').value     = d.name;
+      if (d.date)     document.getElementById('field-date').value     = d.date;
+      if (d.type)     document.getElementById('field-type').value     = d.type;
+      if (d.duration) document.getElementById('field-duration').value = d.duration;
+      if (d.calories) document.getElementById('field-calories').value = d.calories;
+      if (d.notes)    document.getElementById('field-notes').value    = d.notes;
+    })();
+
+    // ── Inline feedback ────────────────────────────────────────
+    function showFeedback(msg, type) {
+      const el = document.getElementById('save-feedback');
+      el.textContent   = msg;
+      el.className     = type;
+      el.style.display = 'block';
+      setTimeout(() => { el.style.display = 'none'; }, 4000);
+    }
+
+    // ── Format helpers ──────────────────────────────────────────
+    function fmtDate(iso) {
+      return new Date(iso).toLocaleDateString('en-US', {
+        month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC',
+      });
+    }
+
+    function fmtTime(mins) {
+      if (!mins) return null;
+      if (mins < 60) return mins + ' min';
+      const h = Math.floor(mins / 60), m = mins % 60;
+      return m ? `${h}h ${m}m` : `${h} hr${h > 1 ? 's' : ''}`;
+    }
+
+    // ── Render workout list ────────────────────────────────────
+    function renderRecent(workouts) {
+      const area = document.getElementById('recent-area');
+
+      if (!workouts.length) {
+        area.innerHTML = `
+          <div class="placeholder-box">
+            <div class="placeholder-icon">📋</div>
+            <p>No workouts logged yet.<br />Save your first session to see it here.</p>
+          </div>`;
+        return;
+      }
+
+      area.innerHTML = workouts.slice(0, 20).map(w => {
+        const pills = [];
+        if (w.duration) pills.push(fmtTime(w.duration));
+        if (w.calories) pills.push(w.calories + ' kcal');
+
+        return `
+          <div class="recent-entry">
+            <div style="flex:1;min-width:0;">
+              <div class="recent-title">${w.title}</div>
+              <div class="recent-date">${fmtDate(w.date)}</div>
+              <div class="recent-pills">
+                <span class="type-badge type-${w.type}">${TYPE_LABELS[w.type] || w.type}</span>
+                ${pills.map(p => `<span class="mini-pill">${p}</span>`).join('')}
+              </div>
+            </div>
+            <div class="entry-actions">
+              <button class="btn-action btn-action-edit"
+                      onclick="startEdit('${w._id}')"
+                      title="Edit workout"
+                      aria-label="Edit ${w.title}">✏️</button>
+              <button class="btn-action btn-action-delete"
+                      onclick="handleDelete('${w._id}', '${w.title.replace(/'/g, "\\'")}')"
+                      title="Delete workout"
+                      aria-label="Delete ${w.title}">🗑️</button>
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    // ── Update quick stats card ────────────────────────────────
+    function updateQuickStats(workouts, avatarStage) {
+      const days   = new Set(workouts.map(w => new Date(w.date).toISOString().split('T')[0]));
+      const sorted = Array.from(days).sort().reverse();
+      const todayStr = new Date().toISOString().split('T')[0];
+      const yd = new Date(); yd.setUTCDate(yd.getUTCDate() - 1);
+      const yStr = yd.toISOString().split('T')[0];
+
+      let streak = 0;
+      if (sorted[0] === todayStr || sorted[0] === yStr) {
+        streak = 1;
+        for (let i = 1; i < sorted.length; i++) {
+          const gap = Math.round((new Date(sorted[i-1]) - new Date(sorted[i])) / 86400000);
+          if (gap === 1) streak++; else break;
+        }
+      }
+
+      document.getElementById('qs-streak').textContent =
+        streak + (streak === 1 ? ' day' : ' days');
+      document.getElementById('qs-total').textContent  =
+        workouts.length + ' workout' + (workouts.length === 1 ? '' : 's');
+      document.getElementById('qs-stage').textContent  =
+        STAGE_LABELS[avatarStage] || avatarStage;
+    }
+
+    // ── Load workouts ──────────────────────────────────────────
+    async function loadRecent() {
+      try {
+        const res  = await fetch(`${API_BASE}/workouts`, { headers: Auth.getHeaders() });
+        const data = await res.json();
+        if (!res.ok) return;
+
+        allWorkouts = data.workouts;
+        renderRecent(allWorkouts);
+
+        if (allWorkouts.length) {
+          const stage = calcStage(allWorkouts.length);
+          if (prevAvatarStage === null) prevAvatarStage = stage;
+          updateQuickStats(allWorkouts, stage);
+        }
+      } catch (err) {
+        console.warn('[Workout] Could not load workouts:', err.message);
+        document.getElementById('recent-area').innerHTML = `
+          <div class="placeholder-box">
+            <div class="placeholder-icon">⚠️</div>
+            <p>Could not load workouts.<br />Is the server running?</p>
+          </div>`;
+      }
+    }
+
+    // ── Enter edit mode ────────────────────────────────────────
+    function startEdit(id) {
+      const w = allWorkouts.find(w => w._id === id);
+      if (!w) return;
+
+      editingId = id;
+
+      document.getElementById('field-name').value     = w.title;
+      document.getElementById('field-date').value     = new Date(w.date).toISOString().split('T')[0];
+      document.getElementById('field-type').value     = w.type    || 'other';
+      document.getElementById('field-duration').value = w.duration || '';
+      document.getElementById('field-calories').value = w.calories || '';
+      document.getElementById('field-notes').value    = w.notes   || '';
+
+      clearAllFieldErrors(document.getElementById('workout-form'));
+
+      document.getElementById('form-title').textContent   = 'Edit Session';
+      document.getElementById('form-badge').textContent   = 'Editing';
+      document.getElementById('form-badge').className     = 'badge badge-warning';
+      document.getElementById('save-btn').textContent     = '💾 Update Workout';
+      document.getElementById('edit-banner-text').textContent = `✏️ Editing: ${w.title}`;
+      document.getElementById('edit-banner').classList.add('visible');
+
+      document.getElementById('field-name').scrollIntoView({ behavior: 'smooth', block: 'center' });
+      document.getElementById('field-name').focus();
+    }
+
+    // ── Cancel edit mode ───────────────────────────────────────
+    function cancelEdit() {
+      editingId = null;
+
+      document.getElementById('workout-form').reset();
+      document.getElementById('field-date').value = today;
+
+      Draft.clear('workout');
+
+      clearAllFieldErrors(document.getElementById('workout-form'));
+      document.getElementById('form-title').textContent = 'Session Details';
+      document.getElementById('form-badge').textContent = 'New Entry';
+      document.getElementById('form-badge').className   = 'badge badge-primary';
+      document.getElementById('save-btn').textContent   = '💾 Save Workout';
+      document.getElementById('edit-banner').classList.remove('visible');
+      document.getElementById('save-feedback').style.display = 'none';
+    }
+
+    // ── Delete a workout ───────────────────────────────────────
+    async function handleDelete(id, title) {
+      if (!confirm(`Delete "${title}"?\n\nThis cannot be undone.`)) return;
+
+      try {
+        const res  = await fetch(`${API_BASE}/workouts/${id}`, {
+          method:  'DELETE',
+          headers: Auth.getHeaders(),
+        });
+        const data = await res.json();
+
+        if (!res.ok) { showToast(data.message || 'Delete failed.', 'error'); return; }
+
+        showToast('Workout deleted.', 'success');
+        if (editingId === id) cancelEdit();
+        await loadRecent();
+
+      } catch (err) {
+        showToast('Cannot reach the server.', 'error');
+      }
+    }
+
+    // ── Form submit (create OR update) ────────────────────────
+    document.getElementById('workout-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const name     = document.getElementById('field-name').value.trim();
+      const date     = document.getElementById('field-date').value;
+      const type     = document.getElementById('field-type').value;
+      const duration = parseFloat(document.getElementById('field-duration').value) || undefined;
+      const calories = parseFloat(document.getElementById('field-calories').value) || undefined;
+      const notes    = document.getElementById('field-notes').value.trim() || undefined;
+
+      // Validate — collect all errors before returning
+      clearAllFieldErrors(e.target);
+      let valid = true;
+
+      if (!name) {
+        setFieldError('field-name', 'Workout name is required.');
+        valid = false;
+      }
+      if (!date) {
+        setFieldError('field-date', 'Date is required.');
+        valid = false;
+      }
+      if (!valid) return;
+
+      const btn    = document.getElementById('save-btn');
+      const isEdit = !!editingId;
+
+      btn.disabled = true;
+      btn.textContent = isEdit ? 'Updating…' : 'Saving…';
+      btn.classList.add('btn-loading');
+
+      const payload = { date, title: name, type, duration, calories, notes };
+      Object.keys(payload).forEach(k => payload[k] === undefined && delete payload[k]);
+
+      const url    = isEdit ? `${API_BASE}/workouts/${editingId}` : `${API_BASE}/workouts`;
+      const method = isEdit ? 'PUT' : 'POST';
+
+      try {
+        const res  = await fetch(url, {
+          method,
+          headers: Auth.getHeaders(),
+          body:    JSON.stringify(payload),
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+          showFeedback(data.message || (isEdit ? 'Update failed.' : 'Save failed.'), 'error');
+          return;
+        }
+
+        showFeedback(isEdit ? '✅ Workout updated!' : '✅ Workout saved!', 'success');
+        showToast(isEdit ? 'Workout updated!' : 'Workout saved!', 'success');
+
+        // Level-up detection (POST only)
+        if (!isEdit) {
+          const newStage = data.avatarStage;
+          if (prevAvatarStage && newStage !== prevAvatarStage) {
+            const banner = document.getElementById('stage-banner');
+            banner.style.display = 'block';
+            banner.textContent   =
+              `🎉 Level up! You've reached ${STAGE_LABELS[newStage]} — keep it up!`;
+            setTimeout(() => { banner.style.display = 'none'; }, 8000);
+          }
+          prevAvatarStage = newStage;
+        }
+
+        // Draft cleared + reset form state
+        Draft.clear('workout');
+        cancelEdit();
+        await loadRecent();
+
+      } catch (err) {
+        showFeedback('Cannot reach the server. Make sure it is running.', 'error');
+      } finally {
+        btn.disabled = false;
+        btn.classList.remove('btn-loading');
+        btn.textContent = editingId ? '💾 Update Workout' : '💾 Save Workout';
+      }
+    });
+
+    // Clear field errors on input
+    document.getElementById('field-name').addEventListener('input', () => clearFieldError('field-name'));
+    document.getElementById('field-date').addEventListener('input', () => clearFieldError('field-date'));
+
+    // ── Clear / Cancel buttons ─────────────────────────────────
+    document.getElementById('clear-btn').addEventListener('click', cancelEdit);
+    document.getElementById('cancel-edit-btn').addEventListener('click', cancelEdit);
+
+    // ── Logout ────────────────────────────────────────────────
+    document.getElementById('logout-btn').addEventListener('click', () => {
+      Auth.clearToken();
+      window.location.href = 'index.html';
+    });
+
+    // ── Init ──────────────────────────────────────────────────
+    loadRecent();
+  </script>
+</body>
+</html>

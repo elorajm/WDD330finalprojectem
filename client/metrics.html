@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Body Metrics — Fitness Goal Tracker</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <style>
+    /* ── Unit toggle ── */
+    .unit-toggle {
+      display: flex;
+      background: var(--gray-100);
+      border-radius: var(--radius);
+      padding: 4px;
+      gap: 2px;
+    }
+    .unit-btn {
+      background: transparent;
+      border: none;
+      border-radius: 0.375rem;
+      color: var(--gray-500);
+      padding: 0.25rem 0.75rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .unit-btn.active {
+      background: white;
+      color: var(--gray-800);
+      box-shadow: 0 1px 3px rgba(0,0,0,.1);
+    }
+
+    /* ── Snapshot stat ── */
+    .snapshot-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.6rem 0;
+      border-bottom: 1px solid var(--gray-100);
+      font-size: 0.875rem;
+    }
+    .snapshot-row:last-child { border-bottom: none; }
+    .snapshot-label { color: var(--gray-500); }
+    .snapshot-value { font-weight: 700; color: var(--gray-800); }
+
+    /* ── Recent entry row ── */
+    .entry-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.65rem 0;
+      border-bottom: 1px solid var(--gray-100);
+      font-size: 0.875rem;
+    }
+    .entry-row:last-child { border-bottom: none; }
+    .entry-date   { color: var(--gray-500); font-size: 0.8rem; }
+    .entry-weight { font-weight: 700; color: var(--gray-800); }
+    .entry-meta   { font-size: 0.78rem; color: var(--gray-400); margin-top: 0.1rem; }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation -->
+  <header>
+    <nav class="navbar" aria-label="Main navigation">
+      <div class="navbar-inner">
+        <a href="dashboard.html" class="navbar-brand">
+          <div class="brand-icon">💪</div>
+          FitTracker
+        </a>
+        <ul class="navbar-nav" role="list">
+          <li><a href="dashboard.html" class="nav-link">🏠 Dashboard</a></li>
+          <li><a href="workout.html"   class="nav-link">🏋️ Workout</a></li>
+          <li><a href="metrics.html"   class="nav-link">📏 Metrics</a></li>
+          <li><a href="progress.html"  class="nav-link">📈 Progress</a></li>
+          <li><a href="avatar.html"    class="nav-link">🧑 Avatar</a></li>
+        </ul>
+        <div class="nav-actions">
+          <div class="nav-avatar" id="nav-initial" aria-label="User profile">🧑</div>
+          <button id="logout-btn" class="btn btn-outline btn-sm">Log Out</button>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <main class="page-wrapper">
+
+    <div class="page-header d-flex justify-between align-center">
+      <div>
+        <h1 class="page-title">📏 Body Metrics</h1>
+        <p class="page-subtitle">Log your measurements to track physical changes.</p>
+      </div>
+      <!-- Unit Toggle -->
+      <div class="unit-toggle">
+        <button class="unit-btn active" data-unit="lbs" id="unit-imperial">Imperial</button>
+        <button class="unit-btn"        data-unit="kg"  id="unit-metric">Metric</button>
+      </div>
+    </div>
+
+    <div class="grid-2">
+
+      <!-- ── Left: Log Form ───────────────────────────────────── -->
+      <div>
+
+        <!-- Basic Measurements -->
+        <div class="card" style="margin-bottom:1.5rem;">
+          <div class="card-header">
+            <h2 class="card-title">Log Measurements</h2>
+          </div>
+
+          <form id="metrics-form" novalidate>
+
+            <div class="form-group">
+              <label for="field-date" class="form-label">
+                Date <span style="color:var(--danger,#ef4444);">*</span>
+              </label>
+              <input type="date" id="field-date" class="form-control" required />
+              <span class="field-error-msg"></span>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+              <div class="form-group">
+                <label for="field-weight" class="form-label">
+                  Body Weight <span style="color:var(--danger,#ef4444);">*</span>
+                </label>
+                <input type="number" id="field-weight" class="form-control"
+                       placeholder="165" step="0.1" min="1" required />
+                <p class="form-hint" id="weight-hint">Pounds (lbs)</p>
+                <span class="field-error-msg"></span>
+              </div>
+              <div class="form-group">
+                <label for="field-height" class="form-label">Height</label>
+                <input type="number" id="field-height" class="form-control"
+                       placeholder="70" step="0.5" min="1" />
+                <p class="form-hint" id="height-hint">Inches</p>
+              </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+              <div class="form-group">
+                <label for="field-bodyfat" class="form-label">Body Fat %</label>
+                <input type="number" id="field-bodyfat" class="form-control"
+                       placeholder="18.5" step="0.1" min="0" max="100" />
+                <p class="form-hint">Optional</p>
+              </div>
+              <div class="form-group">
+                <label for="field-waist" class="form-label">Waist</label>
+                <input type="number" id="field-waist" class="form-control"
+                       placeholder="32.0" step="0.1" min="0" />
+                <p class="form-hint" id="waist-hint">Inches</p>
+              </div>
+            </div>
+
+          </form>
+        </div>
+
+        <!-- Daily Vitals -->
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">Daily Vitals</h2>
+            <span class="badge badge-gray">Optional</span>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+            <div class="form-group">
+              <label for="field-rhr" class="form-label">Resting Heart Rate</label>
+              <input type="number" id="field-rhr" class="form-control"
+                     placeholder="62" min="0" max="300" />
+              <p class="form-hint">BPM</p>
+            </div>
+            <div class="form-group">
+              <label for="field-sleep" class="form-label">Sleep</label>
+              <input type="number" id="field-sleep" class="form-control"
+                     placeholder="7.5" step="0.5" min="0" max="24" />
+              <p class="form-hint">Hours</p>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="field-energy" class="form-label">Energy Level</label>
+            <select id="field-energy" class="form-control">
+              <option value="" disabled selected>How do you feel today?</option>
+              <option value="10">🔥🔥 10 — Feeling invincible</option>
+              <option value="9">🔥 9 — Excellent</option>
+              <option value="8">⚡ 8 — Great energy</option>
+              <option value="7">⚡ 7 — Good</option>
+              <option value="6">😊 6 — Above average</option>
+              <option value="5">😐 5 — Average</option>
+              <option value="4">😔 4 — Below average</option>
+              <option value="3">😴 3 — Tired</option>
+              <option value="2">😩 2 — Very tired</option>
+              <option value="1">💀 1 — Exhausted</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="field-notes" class="form-label">Notes</label>
+            <textarea id="field-notes" class="form-control"
+                      placeholder="How are you feeling? Any notable changes…"
+                      rows="3" maxlength="500"
+                      style="resize:vertical; font-family:inherit; font-size:0.875rem;"></textarea>
+          </div>
+
+          <!-- Feedback -->
+          <div id="save-feedback"></div>
+
+          <div style="display:flex;gap:0.75rem;margin-top:0.5rem;">
+            <button type="button" id="save-btn" class="btn btn-primary" style="flex:1;">
+              💾 Save Metrics
+            </button>
+            <button type="button" id="clear-btn" class="btn btn-outline">Clear</button>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ── Right: Snapshot + History ───────────────────────── -->
+      <div>
+
+        <!-- Current Snapshot -->
+        <div class="card" style="margin-bottom:1.5rem;">
+          <div class="card-header">
+            <h2 class="card-title">Current Snapshot</h2>
+            <span id="snapshot-date" style="font-size:0.75rem;color:var(--gray-400);"></span>
+          </div>
+          <div id="snapshot-area">
+            <div class="loading-row">
+              <div class="spinner"></div>
+              <span>Loading snapshot…</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Entries -->
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">Recent Entries</h2>
+            <a href="progress.html" class="btn btn-outline btn-sm">View All</a>
+          </div>
+          <div id="history-area">
+            <div class="loading-row">
+              <div class="spinner"></div>
+              <span>Loading history…</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </main>
+
+  <footer class="footer">Fitness Goal Tracker &copy; 2025 &mdash; WDD330</footer>
+
+  <script src="js/main.js"></script>
+  <script>
+    requireAuth();
+
+    // ── State ─────────────────────────────────────────────────
+    let currentUnit = 'lbs'; // 'lbs' or 'kg'
+
+    // ── Set today's date as default ───────────────────────────
+    document.getElementById('field-date').value = new Date().toISOString().split('T')[0];
+
+    // ── Draft Persistence ──────────────────────────────────────
+    function saveDraft() {
+      Draft.save('metrics', {
+        date:     document.getElementById('field-date').value,
+        weight:   document.getElementById('field-weight').value,
+        height:   document.getElementById('field-height').value,
+        bodyfat:  document.getElementById('field-bodyfat').value,
+        waist:    document.getElementById('field-waist').value,
+        rhr:      document.getElementById('field-rhr').value,
+        sleep:    document.getElementById('field-sleep').value,
+        energy:   document.getElementById('field-energy').value,
+        notes:    document.getElementById('field-notes').value,
+        unit:     currentUnit,
+      });
+    }
+
+    ['field-date','field-weight','field-height','field-bodyfat','field-waist',
+     'field-rhr','field-sleep','field-notes']
+      .forEach(id => document.getElementById(id).addEventListener('input', saveDraft));
+    document.getElementById('field-energy').addEventListener('change', saveDraft);
+
+    // Restore draft on page load
+    (function restoreDraft() {
+      const d = Draft.load('metrics');
+      if (!d) return;
+      if (d.date)    document.getElementById('field-date').value    = d.date;
+      if (d.weight)  document.getElementById('field-weight').value  = d.weight;
+      if (d.height)  document.getElementById('field-height').value  = d.height;
+      if (d.bodyfat) document.getElementById('field-bodyfat').value = d.bodyfat;
+      if (d.waist)   document.getElementById('field-waist').value   = d.waist;
+      if (d.rhr)     document.getElementById('field-rhr').value     = d.rhr;
+      if (d.sleep)   document.getElementById('field-sleep').value   = d.sleep;
+      if (d.energy)  document.getElementById('field-energy').value  = d.energy;
+      if (d.notes)   document.getElementById('field-notes').value   = d.notes;
+      if (d.unit && d.unit !== currentUnit) applyUnit(d.unit);
+    })();
+
+    // ── Unit toggle ───────────────────────────────────────────
+    function applyUnit(unit) {
+      currentUnit = unit;
+      const isImperial = unit === 'lbs';
+      document.querySelectorAll('.unit-btn').forEach(b => {
+        b.classList.toggle('active', b.dataset.unit === unit);
+      });
+      document.getElementById('weight-hint').textContent = isImperial ? 'Pounds (lbs)' : 'Kilograms (kg)';
+      document.getElementById('height-hint').textContent = isImperial ? 'Inches' : 'Centimeters (cm)';
+      document.getElementById('waist-hint').textContent  = isImperial ? 'Inches' : 'Centimeters (cm)';
+      document.getElementById('field-weight').placeholder = isImperial ? '165' : '75';
+      document.getElementById('field-height').placeholder = isImperial ? '70'  : '178';
+      document.getElementById('field-waist').placeholder  = isImperial ? '32'  : '81';
+    }
+
+    document.querySelectorAll('.unit-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        applyUnit(btn.dataset.unit);
+        saveDraft();
+      });
+    });
+
+    // ── Inline feedback ───────────────────────────────────────
+    function showFeedback(msg, type) {
+      const el = document.getElementById('save-feedback');
+      el.textContent   = msg;
+      el.className     = type;
+      el.style.display = 'block';
+      setTimeout(() => { el.style.display = 'none'; }, 4000);
+    }
+
+    // ── Parse optional number field ───────────────────────────
+    function numVal(id) {
+      const v = parseFloat(document.getElementById(id).value);
+      return isNaN(v) ? undefined : v;
+    }
+
+    // ── Save metrics ──────────────────────────────────────────
+    document.getElementById('save-btn').addEventListener('click', async () => {
+      const date   = document.getElementById('field-date').value;
+      const weight = numVal('field-weight');
+
+      clearFieldError('field-date');
+      clearFieldError('field-weight');
+
+      let valid = true;
+      if (!date) {
+        setFieldError('field-date', 'Date is required.');
+        valid = false;
+      }
+      if (!weight) {
+        setFieldError('field-weight', 'Body weight is required.');
+        valid = false;
+      }
+      if (!valid) return;
+
+      const btn = document.getElementById('save-btn');
+      btn.disabled = true;
+      btn.classList.add('btn-loading');
+      btn._origText = btn.textContent;
+
+      const payload = {
+        date,
+        weight,
+        weightUnit:       currentUnit,
+        bodyFat:          numVal('field-bodyfat'),
+        height:           numVal('field-height'),
+        waist:            numVal('field-waist'),
+        restingHeartRate: numVal('field-rhr'),
+        sleep:            numVal('field-sleep'),
+        energyLevel:      numVal('field-energy'),
+        notes:            document.getElementById('field-notes').value.trim() || undefined,
+      };
+      Object.keys(payload).forEach(k => payload[k] === undefined && delete payload[k]);
+
+      try {
+        const res  = await fetch(`${API_BASE}/metrics`, {
+          method:  'POST',
+          headers: Auth.getHeaders(),
+          body:    JSON.stringify(payload),
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+          showFeedback(data.message || 'Save failed. Try again.', 'error');
+          return;
+        }
+
+        showFeedback('✅ Metrics saved successfully!', 'success');
+        showToast('Metrics saved!', 'success');
+
+        Draft.clear('metrics');
+        loadHistory();
+
+      } catch (err) {
+        showFeedback('Cannot reach the server. Make sure it is running.', 'error');
+      } finally {
+        btn.disabled = false;
+        btn.classList.remove('btn-loading');
+        btn.textContent = btn._origText;
+      }
+    });
+
+    // Clear field errors on input
+    document.getElementById('field-date').addEventListener('input',   () => clearFieldError('field-date'));
+    document.getElementById('field-weight').addEventListener('input', () => clearFieldError('field-weight'));
+
+    // ── Clear form ────────────────────────────────────────────
+    document.getElementById('clear-btn').addEventListener('click', () => {
+      ['field-weight','field-height','field-bodyfat','field-waist',
+       'field-rhr','field-sleep','field-notes'].forEach(id => {
+        document.getElementById(id).value = '';
+      });
+      document.getElementById('field-energy').value = '';
+      document.getElementById('field-date').value   = new Date().toISOString().split('T')[0];
+      clearAllFieldErrors(document.getElementById('metrics-form'));
+      Draft.clear('metrics');
+    });
+
+    // ── Format date ───────────────────────────────────────────
+    function fmtDate(iso) {
+      return new Date(iso).toLocaleDateString('en-US', {
+        month: 'short', day: 'numeric', year: 'numeric',
+      });
+    }
+
+    // ── Render snapshot ───────────────────────────────────────
+    function renderSnapshot(entry) {
+      const weightLabel = entry.weight + ' ' + (entry.weightUnit || 'lbs');
+      document.getElementById('snapshot-date').textContent = fmtDate(entry.date);
+
+      const rows = [
+        { label: '⚖️ Weight',    value: weightLabel },
+        entry.bodyFat          != null ? { label: '📊 Body Fat',   value: entry.bodyFat + '%' }              : null,
+        entry.waist            != null ? { label: '📐 Waist',      value: entry.waist + '"' }                : null,
+        entry.restingHeartRate != null ? { label: '❤️ Heart Rate', value: entry.restingHeartRate + ' bpm' }  : null,
+        entry.sleep            != null ? { label: '💤 Sleep',      value: entry.sleep + ' hrs' }             : null,
+        entry.energyLevel      != null ? { label: '⚡ Energy',     value: entry.energyLevel + ' / 10' }      : null,
+      ].filter(Boolean);
+
+      document.getElementById('snapshot-area').innerHTML = rows.map(r => `
+        <div class="snapshot-row">
+          <span class="snapshot-label">${r.label}</span>
+          <span class="snapshot-value">${r.value}</span>
+        </div>`).join('');
+    }
+
+    // ── Render recent entries ─────────────────────────────────
+    function renderHistory(metrics) {
+      if (!metrics.length) {
+        document.getElementById('history-area').innerHTML = `
+          <div class="placeholder-box">
+            <div class="placeholder-icon">📅</div>
+            <p>Your metric history will appear here.</p>
+          </div>`;
+        return;
+      }
+
+      const items = metrics.slice(0, 8).map(m => {
+        const extras = [];
+        if (m.bodyFat     != null) extras.push(`BF ${m.bodyFat}%`);
+        if (m.sleep       != null) extras.push(`💤 ${m.sleep}h`);
+        if (m.energyLevel != null) extras.push(`⚡ ${m.energyLevel}/10`);
+        return `
+          <div class="entry-row">
+            <div>
+              <div class="entry-date">${fmtDate(m.date)}</div>
+              ${extras.length ? `<div class="entry-meta">${extras.join(' · ')}</div>` : ''}
+            </div>
+            <div class="entry-weight">${m.weight} ${m.weightUnit || 'lbs'}</div>
+          </div>`;
+      }).join('');
+
+      document.getElementById('history-area').innerHTML = items;
+    }
+
+    // ── Load history from API ─────────────────────────────────
+    async function loadHistory() {
+      try {
+        const res  = await fetch(`${API_BASE}/metrics`, { headers: Auth.getHeaders() });
+        const data = await res.json();
+
+        if (!res.ok || !data.metrics?.length) {
+          document.getElementById('snapshot-area').innerHTML = `
+            <div class="placeholder-box">
+              <div class="placeholder-icon">⚖️</div>
+              <p>No metrics logged yet.<br />Save your first entry to see your snapshot.</p>
+            </div>`;
+          document.getElementById('history-area').innerHTML = `
+            <div class="placeholder-box">
+              <div class="placeholder-icon">📅</div>
+              <p>Your metric history will appear here.</p>
+            </div>`;
+          return;
+        }
+
+        renderSnapshot(data.metrics[0]);
+        renderHistory(data.metrics);
+
+      } catch (err) {
+        console.warn('[Metrics] Could not load history:', err.message);
+        document.getElementById('snapshot-area').innerHTML = `
+          <div class="placeholder-box">
+            <div class="placeholder-icon">⚠️</div>
+            <p>Could not load data.<br />Is the server running?</p>
+          </div>`;
+        document.getElementById('history-area').innerHTML = '';
+      }
+    }
+
+    // ── Logout ────────────────────────────────────────────────
+    document.getElementById('logout-btn').addEventListener('click', () => {
+      Auth.clearToken();
+      window.location.href = 'index.html';
+    });
+
+    // ── Init ──────────────────────────────────────────────────
+    loadHistory();
+  </script>
+</body>
+</html>
