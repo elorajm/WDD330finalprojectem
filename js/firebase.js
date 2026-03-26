@@ -1,21 +1,28 @@
 /* ============================================================
    firebase.js  —  Firebase Initialization
    Initializes the Firebase app and exports the auth instance.
-   Config is connected to project: fitnessgoaltracker-wdd330
+
+   IMPORTANT: js/firebase-config.js must be loaded BEFORE this
+   file in every HTML page that uses Firebase.  That file is
+   gitignored and holds the real API key.
+
+   Load order in HTML:
+     <script src="js/firebase-config.js"></script>   ← real key, gitignored
+     <script src="js/firebase.js"></script>           ← uses FIREBASE_CONFIG
+     <script src="js/auth.js"></script>
    ============================================================ */
 
-const firebaseConfig = {
-  apiKey:            "AIzaSyCxJuwYfcMu3BHkSdSD9JPjl9kQVyMWO08",
-  authDomain:        "fitnessgoaltracker-wdd330.firebaseapp.com",
-  projectId:         "fitnessgoaltracker-wdd330",
-  storageBucket:     "fitnessgoaltracker-wdd330.firebasestorage.app",
-  messagingSenderId: "379216086602",
-  appId:             "1:379216086602:web:c523ab48f257bc172b08b3",
-  measurementId:     "G-567SMEYPTC"
-};
+// Guard: tell the developer if firebase-config.js was not loaded first.
+if (typeof FIREBASE_CONFIG === 'undefined') {
+  throw new Error(
+    '[firebase.js] FIREBASE_CONFIG is not defined. ' +
+    'Create js/firebase-config.js from js/firebase-config.example.js ' +
+    'and load it before firebase.js in your HTML.'
+  );
+}
 
 // ── Initialize Firebase ───────────────────────────────────────
-firebase.initializeApp(firebaseConfig);
+firebase.initializeApp(FIREBASE_CONFIG);
 
 // ── Auth instance — used by auth.js ──────────────────────────
 const auth = firebase.auth();

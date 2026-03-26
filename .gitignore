@@ -5,6 +5,9 @@ node_modules/
 .env
 server/.env
 
+# ── Firebase client config (contains API key, never commit) ──────
+js/firebase-config.js
+
 # ── OS / editor files ────────────────────────────────────────────
 .DS_Store
 Thumbs.db
