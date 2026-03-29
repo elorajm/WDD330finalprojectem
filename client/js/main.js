@@ -7,7 +7,9 @@
 
 // ── API Configuration ────────────────────────────────────────
 // Change this when you deploy your backend to Render
-const API_BASE = 'http://localhost:5000/api';
+const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+  ? 'http://localhost:5000/api'
+  : 'https://fitness-goal-tracker-api.onrender.com/api';
 
 /* ── Theme ──────────────────────────────────────────────────────
    Persisted in localStorage under 'fgt_theme'.
