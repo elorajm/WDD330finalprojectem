@@ -19,6 +19,7 @@ require('dotenv').config();
 
 const express      = require('express');
 const cors         = require('cors');
+const path         = require('path');
 const connectDB    = require('./config/db');
 const errorHandler = require('./middleware/errorHandler');
 
@@ -78,6 +79,12 @@ app.use('/api/workouts',     workoutRoutes);
 app.use('/api/metrics',      metricsRoutes);
 app.use('/api/progress',     progressRoutes);
 app.use('/api/suggestions',  suggestionsRoutes);
+
+// ── 5b. Serve Frontend Static Files ──────────────────────────
+// client/ sits one level above server/ in the repo.
+// API routes (/api/*) are matched first above; any other request
+// (e.g. /, /dashboard.html, /css/styles.css) is served from client/.
+app.use(express.static(path.join(__dirname, '..', 'client')));
 
 // ── 6. Global Error Handler (must be last middleware) ─────────
 app.use(errorHandler);
