@@ -235,6 +235,54 @@ function showToast(message, type = 'success') {
   }, 3000);
 }
 
+/* ── Shared Workout Utilities ────────────────────────────────────
+   Used across workout.html, progress.html, and metrics.html.
+   Defined here once so each page script can stay lean.
+──────────────────────────────────────────────────────────────── */
+
+/**
+ * Format an ISO date string (YYYY-MM-DD) for display.
+ * Uses UTC so "2025-06-01" always shows as Jun 1, 2025
+ * regardless of the viewer's local timezone.
+ */
+function fmtDate(dateStr) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  return d.toLocaleDateString('en-US', {
+    year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC',
+  });
+}
+
+/**
+ * Format a number of minutes into a human-readable duration.
+ * e.g. 90 → "1h 30m", 60 → "1 hr", 45 → "45 min"
+ */
+function fmtTime(mins) {
+  if (!mins) return '0 min';
+  if (mins < 60) return mins + ' min';
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  return m ? `${h}h ${m}m` : `${h} hr${h > 1 ? 's' : ''}`;
+}
+
+/** Display labels for each workout type (used by badges and forms). */
+const TYPE_LABELS = {
+  strength:    '🏋️ Strength',
+  cardio:      '🏃 Cardio',
+  flexibility: '🧘 Flexibility',
+  sports:      '⚽ Sports',
+  other:       '•• Other',
+};
+
+/**
+ * Return a coloured pill badge HTML string for a workout type.
+ * Requires the .type-badge CSS classes from styles.css.
+ */
+function typeBadge(type) {
+  const label = TYPE_LABELS[type] || type;
+  return `<span class="type-badge type-${type}">${label}</span>`;
+}
+
 /* ── Init ─────────────────────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', () => {
   Theme.apply();

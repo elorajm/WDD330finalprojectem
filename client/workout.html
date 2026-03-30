@@ -6,21 +6,6 @@
   <title>Log Workout — Fitness Goal Tracker</title>
   <link rel="stylesheet" href="css/styles.css" />
   <style>
-    /* ── Type badges ── */
-    .type-badge {
-      display: inline-block;
-      font-size: 0.7rem;
-      font-weight: 600;
-      padding: 0.15rem 0.55rem;
-      border-radius: 9999px;
-    }
-    .type-strength    { background: #ede9fe; color: #6d28d9; }
-    .type-cardio      { background: #dbeafe; color: #1d4ed8; }
-    .type-flexibility { background: #fce7f3; color: #9d174d; }
-    .type-sports      { background: #dcfce7; color: #15803d; }
-    .type-other       { background: #f1f5f9; color: #475569; }
-
-    /* ── Recent workout entry ── */
     .recent-entry {
       padding: 0.75rem 0;
       border-bottom: 1px solid var(--gray-100);
@@ -280,14 +265,6 @@
     let editingId       = null;   // MongoDB _id of the workout being edited
     let allWorkouts     = [];     // local cache of loaded workouts
 
-    const TYPE_LABELS = {
-      strength:    '🏋️ Strength',
-      cardio:      '🏃 Cardio',
-      flexibility: '🧘 Flexibility',
-      sports:      '⚽ Sports',
-      other:       '•• Other',
-    };
-
     const STAGE_LABELS = {
       beginner:     '🌱 Beginner',
       intermediate: '⚡ Intermediate',
@@ -340,20 +317,6 @@
       el.className     = type;
       el.style.display = 'block';
       setTimeout(() => { el.style.display = 'none'; }, 4000);
-    }
-
-    // ── Format helpers ──────────────────────────────────────────
-    function fmtDate(iso) {
-      return new Date(iso).toLocaleDateString('en-US', {
-        month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC',
-      });
-    }
-
-    function fmtTime(mins) {
-      if (!mins) return null;
-      if (mins < 60) return mins + ' min';
-      const h = Math.floor(mins / 60), m = mins % 60;
-      return m ? `${h}h ${m}m` : `${h} hr${h > 1 ? 's' : ''}`;
     }
 
     // ── Render workout list ────────────────────────────────────

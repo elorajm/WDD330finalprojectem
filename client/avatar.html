@@ -76,7 +76,7 @@
           <li><a href="avatar.html"    class="nav-link">🧑 Avatar</a></li>
         </ul>
         <div class="nav-actions">
-          <div class="nav-avatar" id="nav-user-initial" aria-label="User profile">🧑</div>
+          <div class="nav-avatar" id="nav-initial" aria-label="User profile">🧑</div>
           <button id="logout-btn" class="btn btn-outline btn-sm">Log Out</button>
         </div>
       </div>
@@ -342,7 +342,7 @@
 
       // Nav initial
       if (profile.name) {
-        document.getElementById('nav-user-initial').textContent =
+        document.getElementById('nav-initial').textContent =
           profile.name.charAt(0).toUpperCase();
       }
 

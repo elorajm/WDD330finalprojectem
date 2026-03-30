@@ -419,13 +419,6 @@
       Draft.clear('metrics');
     });
 
-    // ── Format date ───────────────────────────────────────────
-    function fmtDate(iso) {
-      return new Date(iso).toLocaleDateString('en-US', {
-        month: 'short', day: 'numeric', year: 'numeric',
-      });
-    }
-
     // ── Render snapshot ───────────────────────────────────────
     function renderSnapshot(entry) {
       const weightLabel = entry.weight + ' ' + (entry.weightUnit || 'lbs');

@@ -1,7 +1,7 @@
 /* ============================================================
    routes/progress.js  —  Progress / Charts Data
 
-   GET /api/users/progress?days=30
+   GET /api/progress?days=30
      days: 7 | 30 | 90 | all (default 30)
 
    Returns chart-ready data for:
@@ -58,7 +58,7 @@ function buildWeekBuckets(numWeeks) {
   return buckets;
 }
 
-// ── GET /api/users/progress ───────────────────────────────────
+// ── GET /api/progress ────────────────────────────────────────
 router.get('/', async (req, res, next) => {
   try {
     const raw  = req.query.days;

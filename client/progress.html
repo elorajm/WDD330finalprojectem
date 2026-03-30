@@ -14,21 +14,6 @@
     .chart-wrap-lg { height: 280px; }
     .chart-wrap-sm { height: 240px; }
 
-    /* ── Workout type badges ── */
-    .type-badge {
-      display: inline-block;
-      font-size: 0.7rem;
-      font-weight: 600;
-      padding: 0.15rem 0.55rem;
-      border-radius: 9999px;
-      text-transform: capitalize;
-    }
-    .type-strength   { background: #ede9fe; color: #6d28d9; }
-    .type-cardio     { background: #dbeafe; color: #1d4ed8; }
-    .type-flexibility{ background: #fce7f3; color: #9d174d; }
-    .type-sports     { background: #dcfce7; color: #15803d; }
-    .type-other      { background: #f1f5f9; color: #475569; }
-
     /* ── History table ── */
     .history-table {
       width: 100%;
@@ -245,29 +230,6 @@
           <div class="placeholder-icon">${icon}</div>
           <p>${msg}${linkHtml ? '<br />' + linkHtml : ''}</p>
         </div>`;
-    }
-
-    // ── Helper: format minutes → readable duration ─────────────
-    function fmtTime(mins) {
-      if (!mins) return '0 min';
-      if (mins < 60) return mins + ' min';
-      const h = Math.floor(mins / 60);
-      const m = mins % 60;
-      return m ? `${h}h ${m}m` : `${h} hr${h > 1 ? 's' : ''}`;
-    }
-
-    // ── Type badge HTML ────────────────────────────────────────
-    const TYPE_LABELS = {
-      strength:    '🏋️ Strength',
-      cardio:      '🏃 Cardio',
-      flexibility: '🧘 Flexibility',
-      sports:      '⚽ Sports',
-      other:       '•• Other',
-    };
-
-    function typeBadge(type) {
-      const label = TYPE_LABELS[type] || type;
-      return `<span class="type-badge type-${type}">${label}</span>`;
     }
 
     // ── Render Weight chart ────────────────────────────────────
